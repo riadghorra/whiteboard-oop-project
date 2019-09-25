@@ -29,7 +29,7 @@ class white_board():
                 for event in pygame.event.get():
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         coord = event.dict['pos']
-                        if max(coord)<=20:
+                        if max(coord)<=30:
                             self.switch_mode()
                         else :
                             to_draw = point()
@@ -56,7 +56,7 @@ class white_board():
                         last_pos = None
                     elif event.type == pygame.MOUSEBUTTONDOWN:
                         coord = event.dict['pos']
-                        if max(coord)<=15:
+                        if max(coord)<=30:
                             self.switch_mode()
                         else :
                             draw = True
