@@ -3,5 +3,7 @@
   "width": 400,
   "length": 400,
   "point_color": [0, 0, 0],
-  "point_radius": 0
+  "point_radius": 0,
+  "line_color" : [0,0,0],
+  "mode" : "point"
 }

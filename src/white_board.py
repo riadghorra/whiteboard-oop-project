@@ -4,25 +4,63 @@ from figures import point
 import json
 
 with open('config.json') as json_file:
-    config = json.load(json_file)
+    start_config = json.load(json_file)
 
 
 class white_board():
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode([config["width"], config["length"]])
-        self.screen.fill(config["board_background_color"])
         self.done = False
-
+        self.config  = start_config
+        self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
+        self.screen.fill(self.config["board_background_color"])
+        pygame.draw.line(self.screen, self.config["line_color"], [0,30], [30,30], 1)
+        pygame.draw.line(self.screen, self.config["line_color"], [30,30], [30,0], 1)
+        
+    def switch_mode(self):
+        if self.config["mode"] == "point":
+            self.config["mode"] = "line"
+        else :
+            self.config["mode"] = "point"
+            
     def start(self):
         while self.done == False:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.done = True
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    to_draw = point()
-                    to_draw.draw(self.screen, event.dict['pos'], event.dict['button'], config["point_color"],
-                                 config["point_radius"])
+            while self.config["mode"] == "point" :
+                for event in pygame.event.get():
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        coord = event.dict['pos']
+                        if max(coord)<=20:
+                            self.switch_mode()
+                        else :
+                            to_draw = point()
+                            to_draw.draw(self.screen, coord, event.dict['button'], self.config["point_color"],
+                                         self.config["point_radius"])
+                    if event.type == pygame.QUIT:
+                        self.done = True
+            draw = False
+            last_pos = None
+            mouse_position = (0, 0)
+            while self.config["mode"] == "line":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.done = True
+                    elif event.type == pygame.MOUSEMOTION:
+                        if (draw):
+                            mouse_position = pygame.mouse.get_pos()
+                            if last_pos is not None:
+                                pygame.draw.line(self.screen, self.config["line_color"], last_pos, mouse_position, 1)
+                            last_pos = mouse_position
+                    elif event.type == pygame.MOUSEBUTTONUP:
+                        mouse_position = (0, 0)
+                        draw = False
+                        last_pos = None
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        coord = event.dict['pos']
+                        if max(coord)<=15:
+                            self.switch_mode()
+                        else :
+                            draw = True
+                pygame.display.update()
         pygame.quit()
 
 
