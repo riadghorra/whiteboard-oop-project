@@ -1,20 +1,10 @@
 import pygame
 import pygame.draw
-
-def clic(screen, coord, b):
-    if b == 1:
-        c = [255, 255, 0]
-    elif b == 2:
-        c = [255, 0, 255]
-    else:
-        c = [0, 255, 255]
-    pygame.draw.circle(screen, c, coord, 5, 0)
-    pygame.display.flip()
-
+from figures import point
 
 def main():
     pygame.init()
-    xx, yy = 200, 200
+    xx, yy = 400, 400
     size = [xx, yy]
     screen = pygame.display.set_mode(size)
     screen.fill((255, 255, 255))
@@ -24,11 +14,8 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                # Dans le cas d'un clic souris,
-                # event.dict['pos'] contient les coordonnées
-                # event.dict['button'] contient le numéro
-                # du bouton souris
-                clic(screen, event.dict['pos'], event.dict['button'])
+                to_draw = point()
+                to_draw.draw(screen, event.dict['pos'], event.dict['button'])
     pygame.quit()
 
 if __name__ == '__main__':
