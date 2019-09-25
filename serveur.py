@@ -1,23 +1,43 @@
 import socket
+from threading import Thread
 
-hote = ''
-port = 5001
+clients=[]
 
-connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connexion_principale.bind((hote,port))
-connexion_principale.listen()
-print("Le serveur est prêt sur le port numéro {}".format(port))
 
-connexion_avec_client, infos_connexion = connexion_principale.accept()
-connexion_avec_client.send(b"Welcome on the whiteboard, you're connected on the server")
-serveur_lance = True
+class Client(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.nom=None
+        self.done=False
+    def run(self):
+        while not self.done:
+            msg_recu = self.nom.recv(1024)
+            msg_recu = msg_recu.decode()
+            if msg_recu == "END":
+                done = True
+                self.nom.send(b"end")
+            if msg_recu == "START":
+                self.nom.send(b"Demarrage du whiteboard")
+            else:
+                self.nom.send(b"ok")
+    def setclient(self,c):
+        self.nom=c
 
-while serveur_lance:
-    msg_recu = connexion_avec_client.recv(1024)
-    msg_recu = msg_recu.decode()
-    if msg_recu == "END":
-        serveur_lance = False
-        connexion_avec_client.send(b"end")
-    else:
-        connexion_avec_client.send(b"ok")
-#new comment 14:19
+def main():
+    hote = ''
+    port = 5001
+    connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connexion.bind((hote,port))
+    connexion.listen(100)
+    print("Le serveur est prêt sur le port numéro {}".format(port))
+    while True:
+        client, infos_connexion = connexion.accept()
+        client.send(b"Welcome on the whiteboard, you're connected on the server")
+        new_thread=Client()
+        new_thread.setclient(client)
+        clients.append(new_thread)
+        new_thread.start()
+
+
+if __name__=='__main__':
+    main()
