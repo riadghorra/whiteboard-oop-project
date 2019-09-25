@@ -37,6 +37,7 @@ class white_board():
                                          self.config["point_radius"])
                     if event.type == pygame.QUIT:
                         self.done = True
+                        self.switch_mode()
             draw = False
             last_pos = None
             mouse_position = (0, 0)
@@ -44,6 +45,7 @@ class white_board():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.done = True
+                        self.switch_mode()
                     elif event.type == pygame.MOUSEMOTION:
                         if (draw):
                             mouse_position = pygame.mouse.get_pos()
