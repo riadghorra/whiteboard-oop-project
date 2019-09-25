@@ -1,13 +1,16 @@
 import pygame
 import pygame.draw
 from figures import point
+import json
+
+with open('config.json') as json_file:
+    config = json.load(json_file)
+
 
 def main():
     pygame.init()
-    xx, yy = 400, 400
-    size = [xx, yy]
-    screen = pygame.display.set_mode(size)
-    screen.fill((255, 255, 255))
+    screen = pygame.display.set_mode([config["width"], config["length"]])
+    screen.fill(config["board_background_color"])
     done = False
     while done == False:
         for event in pygame.event.get():
@@ -15,8 +18,10 @@ def main():
                 done = True
             if event.type == pygame.MOUSEBUTTONDOWN:
                 to_draw = point()
-                to_draw.draw(screen, event.dict['pos'], event.dict['button'])
+                to_draw.draw(screen, event.dict['pos'], event.dict['button'], config["point_color"],
+                             config["point_radius"])
     pygame.quit()
+
 
 if __name__ == '__main__':
     main()

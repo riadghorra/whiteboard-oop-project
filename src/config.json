@@ -1,0 +1,7 @@
+{
+  "board_background_color": [255, 255, 255],
+  "width": 400,
+  "length": 400,
+  "point_color": [0, 0, 0],
+  "point_radius": 0
+}
