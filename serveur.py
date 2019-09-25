@@ -20,4 +20,4 @@ while serveur_lance:
         connexion_avec_client.send(b"end")
     else:
         connexion_avec_client.send(b"ok")
-
+#new comment 14:19
