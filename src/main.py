@@ -1,8 +1,10 @@
-from white_board import white_board
+from white_board import WhiteBoard
+
 
 def main():
-    board = white_board()
+    board = WhiteBoard()
     board.start()
+
 
 if __name__ == '__main__':
     main()
