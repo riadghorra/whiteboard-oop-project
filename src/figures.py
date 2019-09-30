@@ -12,3 +12,15 @@ class Point:
         pygame.draw.circle(screen, point_color, coord, point_radius)
         pygame.display.flip()
         return
+
+class Line:
+    def __init__(self):
+        pass
+
+    def draw(self, screen, line_color, start_pos, end_pos):
+        pygame.draw.line(screen, 
+                         line_color, 
+                         start_pos, 
+                         end_pos, 
+                         1)
+        return
