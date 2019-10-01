@@ -5,5 +5,13 @@
   "active_color": [0, 0, 0],
   "font_size": 5,
   "mode" : "point",
-  "mode_box_size" : [30,30]
+  "mode_box_size" : [30,30],
+  "text_box": {
+    "active_color": [30, 30, 30],
+    "inactive_color": [180, 180, 180],
+    "font_size": 20,
+    "font": "timesnewroman",
+    "textbox_length": 32,
+    "textbox_width": 140
+  }
 }
