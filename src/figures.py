@@ -17,10 +17,10 @@ class Line:
     def __init__(self):
         pass
 
-    def draw(self, screen, line_color, start_pos, end_pos):
+    def draw(self, screen, line_color, start_pos, end_pos, line_width):
         pygame.draw.line(screen, 
                          line_color, 
                          start_pos, 
                          end_pos, 
-                         1)
+                         line_width)
         return

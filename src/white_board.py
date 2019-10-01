@@ -7,6 +7,11 @@ with open('config.json') as json_file:
     start_config = json.load(json_file)
 
 
+black = [0,0,0]
+red = [255,0,0]
+green = [0,255,0]
+blue  = [0,0,255]
+
 class WhiteBoard:
     def __init__(self):
         pygame.init()
@@ -14,24 +19,56 @@ class WhiteBoard:
         self.config = start_config
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, self.config["line_color"], [0, 30], [self.config["length"], 30], 1)
-        pygame.draw.line(self.screen, self.config["line_color"], [30, 30], [30, 0], 1)
-        pygame.draw.line(self.screen, self.config["line_color"], [60, 30], [60, 0], 1)
-        pygame.draw.line(self.screen, self.config["line_color"], [90, 30], [90, 0], 1)
+        pygame.draw.line(self.screen, black, [0, 30], [self.config["length"], 30], 1)
+        pygame.draw.line(self.screen, black, [30, 30], [30, 0], 1)
+        pygame.draw.line(self.screen, black, [60, 30], [60, 0], 1)
+        pygame.draw.line(self.screen, black, [90, 30], [90, 0], 1)
         self.draw = False
         self.last_pos = None
         self.mouse_position = (0, 0)
-
-    def switch_mode(self, coord=None):
+        
+        """
+        legendage des modes
+        """
+        self.font = pygame.font.Font(None,18)
+        legendes = [{"text" : self.font.render("Point",True,[0,0,0]), "coords" : (0, 0)},
+                   {"text" : self.font.render("Line",True,[0,0,0]), "coords" : (30, 0)},
+                   {"text" : self.font.render("Text",True,[0,0,0]), "coords" : (60, 0)}]
+        
+        for legend in legendes:
+            self.screen.blit(legend["text"], legend["coords"])
+        
+        """
+        Choix des couleurs
+        """
+        self.color_boxes ={
+        "red" : {"rect" : pygame.Rect((self.config["width"]-30, 0), (30, 30)), "color" :red},
+        "green" : {"rect" : pygame.Rect((self.config["width"]-60, 0), (30, 30)), "color" : green},
+        "blue" : {"rect" : pygame.Rect((self.config["width"]-90, 0), (30, 30)), "color" : blue},
+        "black" : {"rect" : pygame.Rect((self.config["width"]-120, 0), (30, 30)), "color" : black}
+        }
+        for box in self.color_boxes.values():
+            pygame.draw.rect(self.screen, box["color"], box["rect"])
+        pygame.display.flip()
+        
+    def switch_config(self, coord=None):
         if coord == "quit":
             self.config["mode"] = "quit"
         else:
             if 30 <= coord[0] and coord[0] <= 60:
-                self.config["mode"] = "point"
-            if 60 <= coord[0] and coord[0] <= 90:
-                self.config["mode"] = "text"
-            if coord[0] <=30 :
                 self.config["mode"] = "line"
+            elif 60 <= coord[0] and coord[0] <= 90:
+                self.config["mode"] = "text"
+            elif coord[0] <=30 :
+                self.config["mode"] = "point"
+            elif self.config["width"]-60 <= coord[0] and coord[0] <= self.config["width"]-30:
+                self.config["active_color"] = green
+            elif self.config["width"]-90 <= coord[0] and coord[0] <= self.config["width"]-60:
+                self.config["active_color"] = blue
+            elif self.config["width"]-120 <= coord[0] and coord[0] <= self.config["width"]-90:
+                self.config["active_color"] = black
+            elif self.config["width"]-30 <= coord[0]:
+                self.config["active_color"] = red
             else :
                 pass
             
@@ -39,30 +76,31 @@ class WhiteBoard:
         if event.type == pygame.MOUSEBUTTONDOWN:
             coord = event.dict['pos']
             if coord[1] <= 30:
-                self.switch_mode(coord)
+                self.switch_config(coord)
             else:
                 to_draw = Point()
                 to_draw.draw(self.screen, coord, 
                              event.dict['button'],
-                             self.config["point_color"],
+                             self.config["active_color"],
                              self.config["point_radius"])
         if event.type == pygame.QUIT:
             self.done = True
-            self.switch_mode("quit")
+            self.switch_config("quit")
     
     def handle_event_line_mode(self, event):
         if event.type == pygame.QUIT:
             self.done = True
-            self.switch_mode("quit")
+            self.switch_config("quit")
         elif event.type == pygame.MOUSEMOTION:
             if (self.draw):
                 self.mouse_position = pygame.mouse.get_pos()
                 if self.last_pos is not None:
                     to_draw = Line()
                     to_draw.draw(self.screen,
-                                 self.config["line_color"], 
+                                 self.config["active_color"], 
                                  self.last_pos, 
-                                 self.mouse_position)
+                                 self.mouse_position,
+                                 self.config["line_width"])
                 self.last_pos = self.mouse_position
         elif event.type == pygame.MOUSEBUTTONUP:
             self.mouse_position = (0, 0)
@@ -71,18 +109,18 @@ class WhiteBoard:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             coord = event.dict['pos']
             if coord[1] <= 30:
-                self.switch_mode(coord)
+                self.switch_config(coord)
             else:
                 self.draw = True
                 
     def handle_event_text_mode(self, event):
         if event.type == pygame.QUIT:
             self.done = True
-            self.switch_mode("quit")
+            self.switch_config("quit")
         if event.type == pygame.MOUSEBUTTONDOWN:
             coord = event.dict['pos']
             if coord[1] <= 30:
-                self.switch_mode(coord)
+                self.switch_config(coord)
             else : 
                 print("une textbox apparait la")
         
