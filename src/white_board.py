@@ -86,6 +86,12 @@ class WhiteBoard:
                 self.config["mode"] = "text"
             elif coord[0] <=30 :
                 self.config["mode"] = "point"
+            elif self.config["width"]-150 <= coord[0] and coord[0] <= self.config["width"]-120:
+                self.config["object_width"] = 10
+            elif self.config["width"]-180 <= coord[0] and coord[0] <= self.config["width"]-150:
+                self.config["object_width"] = 8
+            elif self.config["width"]-210 <= coord[0] and coord[0] <= self.config["width"]-180:
+                self.config["object_width"] = 5
             elif self.config["width"]-60 <= coord[0] and coord[0] <= self.config["width"]-30:
                 self.config["active_color"] = green
             elif self.config["width"]-90 <= coord[0] and coord[0] <= self.config["width"]-60:
@@ -107,7 +113,7 @@ class WhiteBoard:
                 to_draw.draw(self.screen, coord, 
                              event.dict['button'],
                              self.config["active_color"],
-                             self.config["point_radius"])
+                             self.config["object_width"])
         if event.type == pygame.QUIT:
             self.done = True
             self.switch_config("quit")
@@ -119,13 +125,15 @@ class WhiteBoard:
         elif event.type == pygame.MOUSEMOTION:
             if (self.draw):
                 self.mouse_position = pygame.mouse.get_pos()
-                if self.last_pos is not None:
+                if self.mouse_position[1] <= 30:
+                    self.draw=False
+                elif self.last_pos is not None:
                     to_draw = Line()
                     to_draw.draw(self.screen,
                                  self.config["active_color"], 
                                  self.last_pos, 
                                  self.mouse_position,
-                                 self.config["line_width"])
+                                 self.config["object_width"])
                 self.last_pos = self.mouse_position
         elif event.type == pygame.MOUSEBUTTONUP:
             self.mouse_position = (0, 0)

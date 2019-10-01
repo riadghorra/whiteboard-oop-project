@@ -3,7 +3,6 @@
   "width": 800,
   "length": 700,
   "active_color": [0, 0, 0],
-  "point_radius": 0,
-  "line_width" : 1,
+  "object_width" : 5,
   "mode" : "point"
 }
