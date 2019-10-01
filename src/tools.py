@@ -33,4 +33,13 @@ class color_box(trigger_box):
         
     def add(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
-        
+
+class font_size_box(trigger_box):
+    def __init__(self, font_size, top_left, size):
+        super(font_size_box,self).__init__(top_left, size)
+        self.font_size = font_size
+        self.center = [top_left[0]+size[0]//2,top_left[1]+size[1]//2]
+
+    def add(self, screen):
+        pygame.draw.rect(screen, black, self.rect, 1)
+        pygame.draw.circle(screen,black,self.center,self.font_size)

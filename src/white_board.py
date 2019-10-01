@@ -1,7 +1,7 @@
 import pygame
 import pygame.draw
 from figures import Point, Line
-from tools import mode, color_box
+from tools import mode, color_box, font_size_box
 import json
 
 with open('config.json') as json_file:
@@ -21,6 +21,7 @@ class WhiteBoard:
         self.config = start_config
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
+        pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
         
         self.modes = [mode("point", (0,0), tuple(self.config["mode_box_size"])),
                       mode("line", (self.config["mode_box_size"][0],0), tuple(self.config["mode_box_size"])),
@@ -40,6 +41,19 @@ class WhiteBoard:
         for color in self.colors:
             color.add(self.screen)
         
+        
+        
+        """
+        Choix des épaisseurs
+        """
+        self.font_sizes = [font_size_box(5, (self.config["width"]-5*self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
+                       font_size_box(8, (self.config["width"]-6*self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
+                       font_size_box(10, (self.config["width"]-7*self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
+                       font_size_box(12, (self.config["width"]-8*self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"]))                        
+                       ]
+        for font_size in self.font_sizes:
+            font_size.add(self.screen)
+
         """
         initialisation des variables de dessin
         """
@@ -58,6 +72,9 @@ class WhiteBoard:
             for col in self.colors:
                 if col.is_triggered(event):
                     self.config["active_color"] = col.color
+            for font_size_ in self.font_sizes:
+                if font_size_.is_triggered(event):
+                    self.config["font_size"] = font_size_.font_size
             
     def handle_event_point_mode(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -69,7 +86,7 @@ class WhiteBoard:
                 to_draw.draw(self.screen, coord, 
                              event.dict['button'],
                              self.config["active_color"],
-                             self.config["point_radius"])
+                             self.config["font_size"])
         if event.type == pygame.QUIT:
             self.done = True
             self.switch_config("quit")
@@ -81,13 +98,15 @@ class WhiteBoard:
         elif event.type == pygame.MOUSEMOTION:
             if (self.draw):
                 self.mouse_position = pygame.mouse.get_pos()
-                if self.last_pos is not None:
+                if self.mouse_position[1] <= 30:
+                    self.draw=False
+                elif self.last_pos is not None:
                     to_draw = Line()
                     to_draw.draw(self.screen,
                                  self.config["active_color"], 
                                  self.last_pos, 
                                  self.mouse_position,
-                                 self.config["line_width"])
+                                 self.config["font_size"])
                 self.last_pos = self.mouse_position
         elif event.type == pygame.MOUSEBUTTONUP:
             self.mouse_position = (0, 0)
