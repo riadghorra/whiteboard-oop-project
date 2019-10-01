@@ -19,7 +19,7 @@ class WhiteBoard:
         self.config = start_config
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, black, [0, 30], [self.config["length"], 30], 1) #A ne pas hardcoder
+        pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
         pygame.draw.line(self.screen, black, [30, 30], [30, 0], 1)
         pygame.draw.line(self.screen, black, [60, 30], [60, 0], 1)
         pygame.draw.line(self.screen, black, [90, 30], [90, 0], 1)
@@ -49,8 +49,33 @@ class WhiteBoard:
         }
         for box in self.color_boxes.values():
             pygame.draw.rect(self.screen, box["color"], box["rect"])
+
+
+        """
+        Choix de l'épaisseur
+        """
+
+        self.width_boxes ={
+        "large" : {"rect" : pygame.Rect((self.config["width"]-150, 0), (30, 30))},
+        "medium" : {"rect" : pygame.Rect((self.config["width"]-180, 0), (30, 30))},
+        "small" : {"rect" : pygame.Rect((self.config["width"]-210, 0), (30, 30))},
+        }
+
+        for box in self.width_boxes.values():
+            pygame.draw.rect(self.screen,black, box["rect"], 1)
+
+        self.width_circles={
+        "large" : {"circle" : ((self.config["width"]-135, 15), 10)},
+        "medium" : {"circle" : ((self.config["width"]-165, 15), 8)},
+        "small" : {"circle" : ((self.config["width"]-195, 15), 5)}
+        }
+
+        for circle in self.width_circles.values():
+            pygame.draw.circle(self.screen, black, circle["circle"][0],circle["circle"][1])
+
+
         pygame.display.flip()
-        
+
     def switch_config(self, coord=None):
         if coord == "quit":
             self.config["mode"] = "quit"
