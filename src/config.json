@@ -5,5 +5,6 @@
   "active_color": [0, 0, 0],
   "point_radius": 0,
   "line_width" : 1,
-  "mode" : "point"
+  "mode" : "point",
+  "mode_box_size" : [30,30]
 }
