@@ -19,7 +19,7 @@ class WhiteBoard:
         self.config = start_config
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, black, [0, 30], [self.config["length"], 30], 1)
+        pygame.draw.line(self.screen, black, [0, 30], [self.config["length"], 30], 1) #A ne pas hardcoder
         pygame.draw.line(self.screen, black, [30, 30], [30, 0], 1)
         pygame.draw.line(self.screen, black, [60, 30], [60, 0], 1)
         pygame.draw.line(self.screen, black, [90, 30], [90, 0], 1)
