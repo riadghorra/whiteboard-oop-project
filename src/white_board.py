@@ -3,6 +3,7 @@ import pygame.draw
 from figures import Point, Line, TextBox
 from tools import mode, color_box, font_size_box
 import json
+from datetime import datetime
 
 
 '''
@@ -12,11 +13,19 @@ Ouverture de la configuration initiale
 with open('config.json') as json_file:
     start_config = json.load(json_file)
 
+with open('historique.json') as json_file:
+    start_hist = json.load(json_file)
+
 black = [0, 0, 0]
 red = [255, 0, 0]
 green = [0, 255, 0]
 blue = [0, 0, 255]
 white = [255, 255, 255]
+
+client = "client"
+"""
+Adresse client connecté au serveur
+"""
 
 
 class WhiteBoard:
@@ -24,6 +33,7 @@ class WhiteBoard:
         pygame.init()
         self.done = False
         self.config = start_config
+        self.hist = start_hist
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
         pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
@@ -101,6 +111,11 @@ class WhiteBoard:
             else:
                 to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
                 to_draw.draw(self.screen)
+                now = datetime.now()
+                timestamp = datetime.timestamp(now)
+                self.hist["Point"].update({timestamp:(to_draw,client)})
+
+
         if event.type == pygame.QUIT:
             self.done = True
             self.switch_config("quit")
@@ -118,6 +133,9 @@ class WhiteBoard:
                     to_draw = Line(self.config["active_color"], self.last_pos, self.mouse_position,
                                    self.config["font_size"])
                     to_draw.draw(self.screen)
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    self.hist["Line"].update({timestamp:(to_draw,client)})
                 self.last_pos = self.mouse_position
         elif event.type == pygame.MOUSEBUTTONUP:
             self.mouse_position = (0, 0)
