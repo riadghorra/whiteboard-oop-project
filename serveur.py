@@ -1,7 +1,22 @@
 import socket
 from threading import Thread
+from datetime import datetime
+import json
 
 clients=[]
+historique={"message":"","Line":{},"Point":{},"Textbox":{}}
+
+
+
+def dict_to_binary(the_dict):
+    str = json.dumps(the_dict)
+    return bytes(str,'utf-8')
+
+
+def binary_to_dict(the_binary):
+    jsn = ''.join(the_binary.decode("utf-8"))
+    d = json.loads(jsn)
+    return d
 
 
 class Client(Thread):
@@ -13,13 +28,17 @@ class Client(Thread):
         while not self.done:
             msg_recu = self.nom.recv(1024)
             msg_recu = msg_recu.decode()
+            now=datetime.now()
+            timestamp=datetime.timestamp(now)
+            historique.update({timestamp:(msg_recu)})
             if msg_recu == "END":
                 done = True
-                self.nom.send(b"end")
+                historique["message"] = "end"
             if msg_recu == "START":
-                self.nom.send(b"Demarrage du whiteboard")
+                historique["message"] = "Demarrage du whiteboard"
             else:
-                self.nom.send(b"ok")
+                historique["message"] = msg_recu + " recu 5/5"
+            self.nom.send(dict_to_binary(historique))
     def setclient(self,c):
         self.nom=c
 
