@@ -4,6 +4,11 @@ from figures import Point, Line, TextBox
 from tools import mode, color_box, font_size_box
 import json
 
+
+'''
+Ouverture de la configuration initiale
+'''
+
 with open('config.json') as json_file:
     start_config = json.load(json_file)
 
