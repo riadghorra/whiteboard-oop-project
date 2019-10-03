@@ -1,9 +1,8 @@
 import pygame
 import pygame.draw
 from figures import Point, Line, TextBox, draw_line, draw_point, draw_textbox
-from tools import mode, color_box, font_size_box
+from tools import mode, color_box, font_size_box, EventHandler, HandlePoint, HandleLine
 import json
-
 
 '''
 Ouverture de la configuration initiale
@@ -103,42 +102,56 @@ class WhiteBoard:
                     self.config["font_size"] = font_size_.font_size
 
     def handle_event_point_mode(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            coord = event.dict['pos']
-            if coord[1] <= 30:
-                self.switch_config(event)
-            else:
-                to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
-                to_draw.draw(self.screen)
+        # if event.type == pygame.MOUSEBUTTONDOWN:
+        #     coord = event.dict['pos']
+        #     if coord[1] <= 30:
+        #         self.switch_config(event)
+        #     else:
+        #         to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
+        #         to_draw.draw(self.screen)
+        #
+        # if event.type == pygame.QUIT:
+        #     self.done = True
+        #     self.switch_config("quit")
 
-        if event.type == pygame.QUIT:
-            self.done = True
-            self.switch_config("quit")
+        handled = EventHandler.handle(self, event)
+
+        if event.type == pygame.MOUSEBUTTONDOWN and not handled:
+            # coord = event.dict['pos']
+            # to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
+            # to_draw.draw(self.screen)
+            HandlePoint.draw_point(event, self.config["active_color"], self.config["font_size"], self.screen)
 
     def handle_event_line_mode(self, event):
-        if event.type == pygame.QUIT:
-            self.done = True
-            self.switch_config("quit")
-        elif event.type == pygame.MOUSEMOTION:
-            if self.draw:
-                self.mouse_position = pygame.mouse.get_pos()
-                if self.mouse_position[1] <= 30:
-                    self.draw = False
-                elif self.last_pos is not None:
-                    to_draw = Line(self.config["active_color"], self.last_pos, self.mouse_position,
-                                   self.config["font_size"])
-                    to_draw.draw(self.screen)
-                self.last_pos = self.mouse_position
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.mouse_position = (0, 0)
-            self.draw = False
-            self.last_pos = None
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            coord = event.dict['pos']
-            if coord[1] <= 30:
-                self.switch_config(event)
-            else:
-                self.draw = True
+        # if event.type == pygame.QUIT:
+        #     self.done = True
+        #     self.switch_config("quit")
+        #
+        # elif event.type == pygame.MOUSEMOTION:
+        #     if self.draw:
+        #         self.mouse_position = pygame.mouse.get_pos()
+        #         if self.mouse_position[1] <= 30:
+        #             self.draw = False
+        #         elif self.last_pos is not None:
+        #             to_draw = Line(self.config["active_color"], self.last_pos, self.mouse_position,
+        #                            self.config["font_size"])
+        #             to_draw.draw(self.screen)
+        #         self.last_pos = self.mouse_position
+        # elif event.type == pygame.MOUSEBUTTONUP:
+        #     self.mouse_position = (0, 0)
+        #     self.draw = False
+        #     self.last_pos = None
+        # elif event.type == pygame.MOUSEBUTTONDOWN:
+        #     coord = event.dict['pos']
+        #     if coord[1] <= 30:
+        #         self.switch_config(event)
+        #     else:
+        #         self.draw = True
+
+        handled = EventHandler.handle(self, event)
+
+        if not handled:
+            HandleLine.handle_all(self, event)
 
     def handle_event_text_mode(self, event):
         if event.type == pygame.QUIT:
@@ -169,6 +182,7 @@ class WhiteBoard:
         if event.type == pygame.KEYDOWN:
             if self.active_box is not None:
                 if event.key == pygame.K_RETURN:
+                    self.active_box.color = self.config["text_box"]["inactive_color"]
                     self.active_box = None
                 elif event.key == pygame.K_BACKSPACE:
                     self.active_box.text = self.active_box.text[:-1]
@@ -183,24 +197,24 @@ class WhiteBoard:
         for box in self.text_boxes:
             box.update()
 
-        self.screen.fill((255, 255, 255))# de la merde il faut stocker toutes les text box
-        
+        # self.screen.fill((255, 255, 255))# de la merde il faut stocker toutes les text box
+
         for box in self.text_boxes:
             box.draw(self.screen)
 
         pygame.display.flip()
-    
+
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
-                           key=lambda value: value["timestamp"])
-        for action in sred :
+                      key=lambda value: value["timestamp"])
+        for action in sred:
             if action["type"] == "Point":
                 draw_point(action["params"], self.screen)
             if action["type"] == "Line":
                 draw_line(action["params"], self.screen)
             if action["type"] == "Text_box":
                 draw_textbox(action["params"], self.screen)
-                
+
     def start(self):
         while not self.done:
             while self.config["mode"] == "point":
