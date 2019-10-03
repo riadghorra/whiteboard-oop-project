@@ -23,6 +23,7 @@ blue = [0, 0, 255]
 white = [255, 255, 255]
 
 client = "client"
+textboxidcount=0
 """
 Adresse client connecté au serveur
 """
@@ -34,6 +35,7 @@ class WhiteBoard:
         self.done = False
         self.config = start_config
         self.hist = start_hist
+        self.textboxidcount=textboxidcount
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
         pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
@@ -113,7 +115,10 @@ class WhiteBoard:
                 to_draw.draw(self.screen)
                 now = datetime.now()
                 timestamp = datetime.timestamp(now)
-                self.hist["Point"].update({timestamp:(to_draw,client)})
+                self.hist["actions"].append({"type": "Point",
+                                             "timestamp": timestamp,
+                                             "params": [coord, event.dict['button'], self.config["active_color"], self.config["font_size"]],
+                                             "client": client})
 
 
         if event.type == pygame.QUIT:
@@ -135,7 +140,10 @@ class WhiteBoard:
                     to_draw.draw(self.screen)
                     now = datetime.now()
                     timestamp = datetime.timestamp(now)
-                    self.hist["Line"].update({timestamp:(to_draw,client)})
+                    self.hist["actions"].append({"type": "Line",
+                                                 "timestamp": timestamp,
+                                                 "params": [self.config["active_color"], self.last_pos, self.mouse_position, self.config["font_size"]],
+                                                 "client": client})
                 self.last_pos = self.mouse_position
         elif event.type == pygame.MOUSEBUTTONUP:
             self.mouse_position = (0, 0)
@@ -164,7 +172,15 @@ class WhiteBoard:
                                        self.config["text_box"]["textbox_length"],
                                        self.config["text_box"]["active_color"], self.config["text_box"]["font"],
                                        self.config["text_box"]["font_size"])
+                    self.textboxidcount+=1
                     self.text_boxes.append(text_box)
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    self.hist["actions"].append({"type": "Text_box",
+                                                 "timestamp": timestamp,
+                                                 "id": self.textboxidcount,
+                                                 "params": [*coord, self.config["text_box"]["textbox_width"], self.config["text_box"]["textbox_length"], self.config["text_box"]["active_color"], self.config["text_box"]["font"], self.config["text_box"]["font_size"]],
+                                                 "client": client})
                     if self.active_box is not None:
                         self.active_box.color = self.config["text_box"]["inactive_color"]
                     self.active_box = text_box
@@ -178,6 +194,7 @@ class WhiteBoard:
         if event.type == pygame.KEYDOWN:
             if self.active_box is not None:
                 if event.key == pygame.K_RETURN:
+                    self.active_box.color = self.config["text_box"]["inactive_color"]
                     self.active_box = None
                 elif event.key == pygame.K_BACKSPACE:
                     self.active_box.text = self.active_box.text[:-1]
