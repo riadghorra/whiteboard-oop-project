@@ -48,3 +48,12 @@ class TextBox:
         screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
+
+def draw_point(params, screen):
+    return Point(*params).draw(screen) 
+
+def draw_line(params,screen):
+    return Line(*params).draw(screen) 
+
+def draw_textbox(params, screen):
+    return TextBox(*params).draw(screen)

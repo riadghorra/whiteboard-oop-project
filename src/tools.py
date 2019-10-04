@@ -47,3 +47,22 @@ class font_size_box(trigger_box):
     def add(self, screen):
         pygame.draw.rect(screen, black, self.rect, 1)
         pygame.draw.circle(screen, black, self.center, self.font_size)
+
+
+class event_handler():
+    def __init__(self):
+        pass
+    
+    def handle(self,whiteboard, event):
+        if event.type == pygame.QUIT:
+            whiteboard.done = True
+            whiteboard.switch_config("quit")
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            coord = event.dict['pos']
+            if coord[1] <= 30:
+                whiteboard.switch_config(event)
+        return
+    
+    
+    
+    

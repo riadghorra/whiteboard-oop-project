@@ -1,6 +1,6 @@
 import pygame
 import pygame.draw
-from figures import Point, Line, TextBox
+from figures import Point, Line, TextBox, draw_line, draw_point, draw_textbox
 from tools import mode, color_box, font_size_box
 import json
 from datetime import datetime
@@ -166,7 +166,6 @@ class WhiteBoard:
                 self.switch_config(event)
                 self.active_box = None
             else:
-                print("une textbox apparait la")
                 if event.dict["button"] == 3:
                     text_box = TextBox(*coord, self.config["text_box"]["textbox_width"],
                                        self.config["text_box"]["textbox_length"],
@@ -198,7 +197,6 @@ class WhiteBoard:
                     self.active_box = None
                 elif event.key == pygame.K_BACKSPACE:
                     self.active_box.text = self.active_box.text[:-1]
-                    print("JPP")
                 else:
                     self.active_box.text += event.unicode
 
@@ -210,11 +208,23 @@ class WhiteBoard:
         for box in self.text_boxes:
             box.update()
 
-        self.screen.fill((255, 255, 255))  # de la merde il faut stocker toutes les text box
+        self.screen.fill((255, 255, 255))# de la merde il faut stocker toutes les text box
+
         for box in self.text_boxes:
             box.draw(self.screen)
 
         pygame.display.flip()
+
+    def load_actions(self, hist):
+        sred = sorted(hist["actions"],
+                           key=lambda value: value["timestamp"])
+        for action in sred :
+            if action["type"] == "Point":
+                draw_point(action["params"], self.screen)
+            if action["type"] == "Line":
+                draw_line(action["params"], self.screen)
+            if action["type"] == "Text_box":
+                draw_textbox(action["params"], self.screen)
 
     def start(self):
         while not self.done:
