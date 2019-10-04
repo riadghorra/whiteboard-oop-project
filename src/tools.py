@@ -116,3 +116,44 @@ class HandleLine(EventHandler, Line):
             HandleLine.handle_mouse_button_up(whiteboard)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             whiteboard.draw = True
+
+
+class HandleText(EventHandler, TextBox):
+    def __init__(self):
+        EventHandler.__init__(self)
+        TextBox.__init__(self)
+
+    @staticmethod
+    def box_selection(whiteboard, event):
+        if event.dict["button"] == 3:
+            coord = event.dict['pos']
+            text_box = TextBox(*coord, whiteboard.config["text_box"]["textbox_width"],
+                               whiteboard.config["text_box"]["textbox_length"],
+                               whiteboard.config["text_box"]["active_color"], whiteboard.config["text_box"]["font"],
+                               whiteboard.config["text_box"]["font_size"])
+            whiteboard.text_boxes.append(text_box)
+            if whiteboard.active_box is not None:
+                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+            whiteboard.active_box = text_box
+        elif event.dict["button"] == 1:
+            for box in whiteboard.text_boxes:
+                if box.rect.collidepoint(event.pos):
+                    whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+                    whiteboard.active_box = box
+                    whiteboard.active_box.color = whiteboard.config["text_box"]["active_color"]
+
+    @staticmethod
+    def write_in_box(whiteboard, event):
+        if whiteboard.active_box is not None:
+            if event.key == pygame.K_RETURN:
+                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+                whiteboard.active_box = None
+            elif event.key == pygame.K_BACKSPACE:
+                whiteboard.active_box.text = whiteboard.active_box.text[:-1]
+            else:
+                whiteboard.active_box.text += event.unicode
+
+        if whiteboard.active_box is not None:
+            # Re-render the text.
+            whiteboard.active_box.txt_surface = whiteboard.active_box.sysfont.render(whiteboard.active_box.text, True,
+                                                                                     whiteboard.active_box.color)
