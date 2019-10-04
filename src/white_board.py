@@ -189,6 +189,13 @@ class WhiteBoard:
                             self.active_box.color = self.config["text_box"]["inactive_color"]
                             self.active_box = box
                             self.active_box.color = self.config["text_box"]["active_color"]
+            for box in self.text_boxes:
+                box.update()
+                self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
+                self.load_actions(self.hist)
+
+            for box in self.text_boxes:
+                box.draw(self.screen)
 
         if event.type == pygame.KEYDOWN:
             if self.active_box is not None:
@@ -204,14 +211,14 @@ class WhiteBoard:
                 # Re-render the text.
                 self.active_box.txt_surface = self.active_box.sysfont.render(self.active_box.text, True,
                                                                              self.active_box.color)
+            for box in self.text_boxes:
+                box.update()
+                self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
+                self.load_actions(self.hist)
 
-        for box in self.text_boxes:
-            box.update()
-        self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
-        self.load_actions(self.hist)
+            for box in self.text_boxes:
+                box.draw(self.screen)
 
-        for box in self.text_boxes:
-            box.draw(self.screen)
 
         pygame.display.flip()
 
