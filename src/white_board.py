@@ -207,8 +207,8 @@ class WhiteBoard:
 
         for box in self.text_boxes:
             box.update()
-
-        self.screen.fill((255, 255, 255))# de la merde il faut stocker toutes les text box
+        self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
+        self.load_actions(self.hist)
 
         for box in self.text_boxes:
             box.draw(self.screen)
