@@ -121,17 +121,19 @@ class WhiteBoard:
 
         if event.type == pygame.MOUSEBUTTONDOWN and not handled:
             HandleText.box_selection(self, event)
+            for box in self.text_boxes:
+                box.update()
+                box.draw(self.screen)
 
         if event.type == pygame.KEYDOWN and not handled:
             HandleText.write_in_box(self, event)
+            for box in self.text_boxes:
+                box.update()
+                box.draw(self.screen)
 
-        for box in self.text_boxes:
-            box.update()
-        self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
-        self.load_actions(self.hist)
 
-        for box in self.text_boxes:
-            box.draw(self.screen)
+
+
 
         pygame.display.flip()
 
