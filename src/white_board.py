@@ -20,7 +20,7 @@ green = [0, 255, 0]
 blue = [0, 0, 255]
 white = [255, 255, 255]
 
-textboxidcount = 0
+
 """
 Adresse client connecté au serveur
 """
@@ -32,7 +32,6 @@ class WhiteBoard:
         self.done = False
         self.config = start_config
         self.hist = start_hist
-        self.textboxidcount = textboxidcount
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
         pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
@@ -121,15 +120,15 @@ class WhiteBoard:
 
         if event.type == pygame.MOUSEBUTTONDOWN and not handled:
             HandleText.box_selection(self, event)
-            for box in self.text_boxes:
-                box.update()
-                box.draw(self.screen)
+            #for box in self.text_boxes:
+                #box.update()
+                #box.draw(self.screen)
 
         if event.type == pygame.KEYDOWN and not handled:
             HandleText.write_in_box(self, event)
-            for box in self.text_boxes:
-                box.update()
-                box.draw(self.screen)
+            #for box in self.text_boxes:
+                #box.update()
+                #box.draw(self.screen)
 
 
 
@@ -146,7 +145,7 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.screen)
+                draw_textbox(action["params"], self.screen, hist)
 
     def start(self):
         while not self.done:

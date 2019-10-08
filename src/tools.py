@@ -157,15 +157,18 @@ class HandleText(EventHandler, TextBox):
                                                           whiteboard.config["text_box"]["textbox_length"],
                                                           whiteboard.config["text_box"]["active_color"],
                                                           whiteboard.config["text_box"]["font"],
-                                                          whiteboard.config["text_box"]["font_size"]],
-                                               "client": client,
-                                               "text": ""})
+                                                          whiteboard.config["text_box"]["font_size"],
+                                                          ""],
+                                               "client": client})
+            text_box.draw(whiteboard.screen)
             if whiteboard.active_box is not None:
-                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"] #supprimable
                 id_counter = whiteboard.active_box.id_counter
                 for action in [x for x in whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['text'] = whiteboard.active_box.text
+                        action['params'][-1] = whiteboard.active_box.text
+                        action['params'][4] = whiteboard.config["text_box"]["inactive_color"]
+                        whiteboard.load_actions(whiteboard.hist)
             whiteboard.active_box = text_box
         elif event.dict["button"] == 1:
             for box in whiteboard.text_boxes:
@@ -174,9 +177,16 @@ class HandleText(EventHandler, TextBox):
                     id_counter = whiteboard.active_box.id_counter
                     for action in [x for x in whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
-                            action['text'] = whiteboard.active_box.text
+                            action['params'][-1] = whiteboard.active_box.text
+                            action['params'][4] = whiteboard.config["text_box"]["inactive_color"]
+                    whiteboard.active_box.draw(whiteboard.screen)
                     whiteboard.active_box = box
                     whiteboard.active_box.color = whiteboard.config["text_box"]["active_color"]
+                    id_counter = whiteboard.active_box.id_counter
+                    for action in [x for x in whiteboard.hist['actions'] if x['type'] == 'Text_box']:
+                        if action['id'] == id_counter:
+                            action['params'][4] = whiteboard.config["text_box"]["active_color"]
+                    box.draw(whiteboard.screen)
 
     @staticmethod
     def write_in_box(whiteboard, event):
@@ -189,11 +199,19 @@ class HandleText(EventHandler, TextBox):
                 id_counter = whiteboard.active_box.id_counter
                 for action in [x for x in whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['text'] = whiteboard.active_box.text
+                        action['params'][-1] = whiteboard.active_box.text
                 whiteboard.screen.fill((255, 255, 255), (0, 31, whiteboard.config["width"], whiteboard.config["length"]-31))
                 whiteboard.load_actions(whiteboard.hist)
             else:
                 whiteboard.active_box.text += event.unicode
+                id_counter = whiteboard.active_box.id_counter
+                for action in [x for x in whiteboard.hist['actions'] if x['type'] == 'Text_box']:
+                    if action['id'] == id_counter:
+                        action['params'][-1] = whiteboard.active_box.text
+                whiteboard.active_box.update(whiteboard.hist)
+                whiteboard.screen.fill((255, 255, 255), (0, 31, whiteboard.config["width"], whiteboard.config["length"]-31))
+                whiteboard.load_actions(whiteboard.hist)
+
 
         if whiteboard.active_box is not None:
             # Re-render the text.
