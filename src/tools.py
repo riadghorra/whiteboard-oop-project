@@ -1,12 +1,14 @@
 import pygame
 import pygame.draw
 from figures import Point, Line, TextBox
+from datetime import datetime
 
 black = [0, 0, 0]
 red = [255, 0, 0]
 green = [0, 255, 0]
 blue = [0, 0, 255]
 white = [255, 255, 255]
+client = "client"
 
 
 class trigger_box():
@@ -75,10 +77,16 @@ class HandlePoint(EventHandler, Point):
         Point.__init__(self)
 
     @staticmethod
-    def draw_point(event, color, font_size, screen):
+    def draw_point(event, color, font_size, screen,hist):
         coord = event.dict['pos']
         to_draw = Point(coord, event.dict['button'], color, font_size)
         to_draw.draw(screen)
+        now = datetime.now()
+        timestamp = datetime.timestamp(now)
+        hist["actions"].append({"type": "Point",
+        "timestamp": timestamp,
+        "params": [coord, event.dict['button'], color, font_size],
+        "client": client})
 
 
 class HandleLine(EventHandler, Line):
@@ -87,7 +95,7 @@ class HandleLine(EventHandler, Line):
         Line.__init__(self)
 
     @staticmethod
-    def handle_mouse_motion(whiteboard):
+    def handle_mouse_motion(whiteboard,hist):
         if whiteboard.draw:
             whiteboard.mouse_position = pygame.mouse.get_pos()
             if whiteboard.mouse_position[1] <= 30:
@@ -96,6 +104,12 @@ class HandleLine(EventHandler, Line):
                 to_draw = Line(whiteboard.config["active_color"], whiteboard.last_pos, whiteboard.mouse_position,
                                whiteboard.config["font_size"])
                 to_draw.draw(whiteboard.screen)
+                now = datetime.now()
+                timestamp = datetime.timestamp(now)
+                hist["actions"].append({"type": "Line",
+                                        "timestamp": timestamp,
+                                        "params": [whiteboard.config["active_color"], whiteboard.last_pos, whiteboard.mouse_position, whiteboard.config["font_size"]],
+                                        "client": client})
             whiteboard.last_pos = whiteboard.mouse_position
 
     @staticmethod

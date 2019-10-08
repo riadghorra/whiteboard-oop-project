@@ -21,7 +21,6 @@ green = [0, 255, 0]
 blue = [0, 0, 255]
 white = [255, 255, 255]
 
-client = "client"
 textboxidcount=0
 """
 Adresse client connecté au serveur
