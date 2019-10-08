@@ -1,1 +1,7 @@
 /src/__pycache__
+.idea/.gitignore
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/whiteboard-oop-project.iml

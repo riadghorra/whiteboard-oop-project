@@ -1,7 +1,7 @@
 import pygame
 import pygame.draw
 from figures import Point, Line, TextBox, draw_line, draw_point, draw_textbox
-from tools import mode, color_box, font_size_box
+from tools import mode, color_box, font_size_box, EventHandler, HandlePoint, HandleLine, HandleText
 import json
 from datetime import datetime
 
