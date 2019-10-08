@@ -77,16 +77,16 @@ class HandlePoint(EventHandler, Point):
         Point.__init__(self)
 
     @staticmethod
-    def draw_point(event, color, font_size, screen,hist):
+    def draw_point(event, color, font_size, screen, hist):
         coord = event.dict['pos']
         to_draw = Point(coord, event.dict['button'], color, font_size)
         to_draw.draw(screen)
         now = datetime.now()
         timestamp = datetime.timestamp(now)
         hist["actions"].append({"type": "Point",
-        "timestamp": timestamp,
-        "params": [coord, event.dict['button'], color, font_size],
-        "client": client})
+                                "timestamp": timestamp,
+                                "params": [coord, event.dict['button'], color, font_size],
+                                "client": client})
 
 
 class HandleLine(EventHandler, Line):
@@ -95,7 +95,7 @@ class HandleLine(EventHandler, Line):
         Line.__init__(self)
 
     @staticmethod
-    def handle_mouse_motion(whiteboard,hist):
+    def handle_mouse_motion(whiteboard):
         if whiteboard.draw:
             whiteboard.mouse_position = pygame.mouse.get_pos()
             if whiteboard.mouse_position[1] <= 30:
@@ -106,10 +106,12 @@ class HandleLine(EventHandler, Line):
                 to_draw.draw(whiteboard.screen)
                 now = datetime.now()
                 timestamp = datetime.timestamp(now)
-                hist["actions"].append({"type": "Line",
-                                        "timestamp": timestamp,
-                                        "params": [whiteboard.config["active_color"], whiteboard.last_pos, whiteboard.mouse_position, whiteboard.config["font_size"]],
-                                        "client": client})
+                whiteboard.hist["actions"].append({"type": "Line",
+                                                   "timestamp": timestamp,
+                                                   "params": [whiteboard.config["active_color"], whiteboard.last_pos,
+                                                              whiteboard.mouse_position,
+                                                              whiteboard.config["font_size"]],
+                                                   "client": client})
             whiteboard.last_pos = whiteboard.mouse_position
 
     @staticmethod
@@ -146,6 +148,17 @@ class HandleText(EventHandler, TextBox):
                                whiteboard.config["text_box"]["active_color"], whiteboard.config["text_box"]["font"],
                                whiteboard.config["text_box"]["font_size"])
             whiteboard.text_boxes.append(text_box)
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            whiteboard.hist["actions"].append({"type": "Text_box",
+                                               "timestamp": timestamp,
+                                               "id": text_box.id_counter,
+                                               "params": [*coord, whiteboard.config["text_box"]["textbox_width"],
+                                                          whiteboard.config["text_box"]["textbox_length"],
+                                                          whiteboard.config["text_box"]["active_color"],
+                                                          whiteboard.config["text_box"]["font"],
+                                                          whiteboard.config["text_box"]["font_size"]],
+                                               "client": client})
             if whiteboard.active_box is not None:
                 whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
             whiteboard.active_box = text_box

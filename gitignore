@@ -1,4 +1,5 @@
 /src/__pycache__
+.idea
 .idea/.gitignore
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/misc.xml

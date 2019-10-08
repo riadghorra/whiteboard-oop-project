@@ -30,6 +30,7 @@ class Line:
 
 
 class TextBox:
+    id_counter = 0
     def __init__(self, x, y, w, h, color, font, font_size, text=''):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = color
@@ -37,6 +38,9 @@ class TextBox:
         self.sysfont = pygame.font.SysFont(font, font_size)
         self.txt_surface = self.sysfont.render(text, True, self.color)
         self.active = False
+        self.id_counter = TextBox.id_counter
+        TextBox.id_counter += 1
+        print(TextBox.id_counter)
 
     def update(self):
         # Resize the box if the text is too long.
