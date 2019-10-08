@@ -5,7 +5,6 @@ from tools import mode, color_box, font_size_box
 import json
 from datetime import datetime
 
-
 '''
 Ouverture de la configuration initiale
 '''
@@ -106,126 +105,141 @@ class WhiteBoard:
                     self.config["font_size"] = font_size_.font_size
 
     def handle_event_point_mode(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            coord = event.dict['pos']
-            if coord[1] <= 30:
-                self.switch_config(event)
-            else:
-                to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
-                to_draw.draw(self.screen)
-                now = datetime.now()
-                timestamp = datetime.timestamp(now)
-                self.hist["actions"].append({"type": "Point",
-                                             "timestamp": timestamp,
-                                             "params": [coord, event.dict['button'], self.config["active_color"], self.config["font_size"]],
-                                             "client": client})
+        #if event.type == pygame.MOUSEBUTTONDOWN:
+        #    coord = event.dict['pos']
+        #    if coord[1] <= 30:
+        #        self.switch_config(event)
+        #    else:
+        #        to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
+        #        to_draw.draw(self.screen)
+        #        now = datetime.now()
+        #        timestamp = datetime.timestamp(now)
+        #       self.hist["actions"].append({"type": "Point",
+        #                                    "timestamp": timestamp,
+        #                                    "params": [coord, event.dict['button'], self.config["active_color"], self.config["font_size"]],
+        #                                    "client": client})
 
 
-        if event.type == pygame.QUIT:
-            self.done = True
-            self.switch_config("quit")
+        handled = EventHandler.handle(self, event)
+
+        if event.type == pygame.MOUSEBUTTONDOWN and not handled:
+            # coord = event.dict['pos']
+            # to_draw = Point(coord, event.dict['button'], self.config["active_color"], self.config["font_size"])
+            # to_draw.draw(self.screen)
+            HandlePoint.draw_point(event, self.config["active_color"], self.config["font_size"], self.screen)
 
     def handle_event_line_mode(self, event):
-        if event.type == pygame.QUIT:
-            self.done = True
-            self.switch_config("quit")
-        elif event.type == pygame.MOUSEMOTION:
-            if self.draw:
-                self.mouse_position = pygame.mouse.get_pos()
-                if self.mouse_position[1] <= 30:
-                    self.draw = False
-                elif self.last_pos is not None:
-                    to_draw = Line(self.config["active_color"], self.last_pos, self.mouse_position,
-                                   self.config["font_size"])
-                    to_draw.draw(self.screen)
-                    now = datetime.now()
-                    timestamp = datetime.timestamp(now)
-                    self.hist["actions"].append({"type": "Line",
-                                                 "timestamp": timestamp,
-                                                 "params": [self.config["active_color"], self.last_pos, self.mouse_position, self.config["font_size"]],
-                                                 "client": client})
-                self.last_pos = self.mouse_position
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.mouse_position = (0, 0)
-            self.draw = False
-            self.last_pos = None
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            coord = event.dict['pos']
-            if coord[1] <= 30:
-                self.switch_config(event)
-            else:
-                self.draw = True
+       # if event.type == pygame.QUIT:
+       #     self.done = True
+       #     self.switch_config("quit")
+       # elif event.type == pygame.MOUSEMOTION:
+       #     if self.draw:
+       #         self.mouse_position = pygame.mouse.get_pos()
+       #         if self.mouse_position[1] <= 30:
+       #             self.draw = False
+       #         elif self.last_pos is not None:
+       #             to_draw = Line(self.config["active_color"], self.last_pos, self.mouse_position,
+       #                            self.config["font_size"])
+       #             to_draw.draw(self.screen)
+       #             now = datetime.now()
+       #             timestamp = datetime.timestamp(now)
+       #             self.hist["actions"].append({"type": "Line",
+       #                                          "timestamp": timestamp,
+       #                                          "params": [self.config["active_color"], self.last_pos, self.mouse_position, self.config["font_size"]],
+       #                                          "client": client})
+       #         self.last_pos = self.mouse_position
+       # elif event.type == pygame.MOUSEBUTTONUP:
+       #     self.mouse_position = (0, 0)
+       #     self.draw = False
+       #     self.last_pos = None
+       # elif event.type == pygame.MOUSEBUTTONDOWN:
+       #     coord = event.dict['pos']
+       #     if coord[1] <= 30:
+       #         self.switch_config(event)
+       #     else:
+       #         self.draw = True
+        handled = EventHandler.handle(self, event)
+
+        if not handled:
+            HandleLine.handle_all(self, event)
 
     def handle_event_text_mode(self, event):
-        if event.type == pygame.QUIT:
-            self.done = True
-            self.switch_config("quit")
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            coord = event.dict['pos']
-            if coord[1] <= 30:
-                self.switch_config(event)
-                self.active_box = None
-            else:
-                if event.dict["button"] == 3:
-                    text_box = TextBox(*coord, self.config["text_box"]["textbox_width"],
-                                       self.config["text_box"]["textbox_length"],
-                                       self.config["text_box"]["active_color"], self.config["text_box"]["font"],
-                                       self.config["text_box"]["font_size"])
-                    self.textboxidcount+=1
-                    self.text_boxes.append(text_box)
-                    now = datetime.now()
-                    timestamp = datetime.timestamp(now)
-                    self.hist["actions"].append({"type": "Text_box",
-                                                 "timestamp": timestamp,
-                                                 "id": self.textboxidcount,
-                                                 "params": [*coord, self.config["text_box"]["textbox_width"], self.config["text_box"]["textbox_length"], self.config["text_box"]["active_color"], self.config["text_box"]["font"], self.config["text_box"]["font_size"]],
-                                                 "client": client})
-                    if self.active_box is not None:
-                        self.active_box.color = self.config["text_box"]["inactive_color"]
-                    self.active_box = text_box
-                elif event.dict["button"] == 1:
-                    for box in self.text_boxes:
-                        if box.rect.collidepoint(event.pos):
-                            self.active_box.color = self.config["text_box"]["inactive_color"]
-                            self.active_box = box
-                            self.active_box.color = self.config["text_box"]["active_color"]
-            for box in self.text_boxes:
+       # if event.type == pygame.QUIT:
+       #     self.done = True
+       #     self.switch_config("quit")
+       # if event.type == pygame.MOUSEBUTTONDOWN:
+       #     coord = event.dict['pos']
+       #     if coord[1] <= 30:
+       #         self.switch_config(event)
+       #         self.active_box = None
+       #     else:
+       #         if event.dict["button"] == 3:
+       #             text_box = TextBox(*coord, self.config["text_box"]["textbox_width"],
+       #                                self.config["text_box"]["textbox_length"],
+       #                                self.config["text_box"]["active_color"], self.config["text_box"]["font"],
+       #                                self.config["text_box"]["font_size"])
+       #             self.textboxidcount+=1
+       #             self.text_boxes.append(text_box)
+       #             now = datetime.now()
+       #             timestamp = datetime.timestamp(now)
+       #             self.hist["actions"].append({"type": "Text_box",
+       #                                          "timestamp": timestamp,
+       #                                          "id": self.textboxidcount,
+       #                                          "params": [*coord, self.config["text_box"]["textbox_width"], self.config["text_box"]["textbox_length"], self.config["text_box"]["active_color"], self.config["text_box"]["font"], self.config["text_box"]["font_size"]],
+       #                                          "client": client})
+       #             if self.active_box is not None:
+       #                 self.active_box.color = self.config["text_box"]["inactive_color"]
+       #             self.active_box = text_box
+       #         elif event.dict["button"] == 1:
+       #             for box in self.text_boxes:
+       #                 if box.rect.collidepoint(event.pos):
+       #                     self.active_box.color = self.config["text_box"]["inactive_color"]
+       #                     self.active_box = box
+       #                     self.active_box.color = self.config["text_box"]["active_color"]
+       #if event.type == pygame.KEYDOWN:
+       #     if self.active_box is not None:
+       #         if event.key == pygame.K_RETURN:
+       #             self.active_box.color = self.config["text_box"]["inactive_color"]
+       #             self.active_box = None
+       #         elif event.key == pygame.K_BACKSPACE:
+       #             self.active_box.text = self.active_box.text[:-1]
+       #         else:
+       #             self.active_box.text += event.unicode
+#
+       #     if self.active_box is not None:
+       #         # Re-render the text.
+       #         self.active_box.txt_surface = self.active_box.sysfont.render(self.active_box.text, True,
+       #                                                                      self.active_box.color)
+       #     for box in self.text_boxes:
+       #         box.update()
+       #         self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
+       #         self.load_actions(self.hist)
+        handled = EventHandler.handle(self, event)
+
+        if event.type == pygame.MOUSEBUTTONDOWN and not handled:
+            HandleText.box_selection(self, event)
+
+        if event.type == pygame.KEYDOWN and not handled:
+            HandleText.write_in_box(self, event)
+
+        for box in self.text_boxes:
                 box.update()
-                self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
-                self.load_actions(self.hist)
+       #         self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
+       #         self.load_actions(self.hist)
 
-            for box in self.text_boxes:
-                box.draw(self.screen)
+        for box in self.text_boxes:
+            box.draw(self.screen)
 
-        if event.type == pygame.KEYDOWN:
-            if self.active_box is not None:
-                if event.key == pygame.K_RETURN:
-                    self.active_box.color = self.config["text_box"]["inactive_color"]
-                    self.active_box = None
-                elif event.key == pygame.K_BACKSPACE:
-                    self.active_box.text = self.active_box.text[:-1]
-                else:
-                    self.active_box.text += event.unicode
 
-            if self.active_box is not None:
-                # Re-render the text.
-                self.active_box.txt_surface = self.active_box.sysfont.render(self.active_box.text, True,
-                                                                             self.active_box.color)
-            for box in self.text_boxes:
-                box.update()
-                self.screen.fill((255, 255, 255), (0, 31, self.config["width"], self.config["length"]-31)) # de la merde il faut stocker toutes les text box
-                self.load_actions(self.hist)
 
-            for box in self.text_boxes:
-                box.draw(self.screen)
 
 
         pygame.display.flip()
 
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
-                           key=lambda value: value["timestamp"])
-        for action in sred :
+                      key=lambda value: value["timestamp"])
+        for action in sred:
             if action["type"] == "Point":
                 draw_point(action["params"], self.screen)
             if action["type"] == "Line":

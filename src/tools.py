@@ -1,5 +1,6 @@
 import pygame
 import pygame.draw
+from figures import Point, Line, TextBox
 
 black = [0, 0, 0]
 red = [255, 0, 0]
@@ -49,20 +50,110 @@ class font_size_box(trigger_box):
         pygame.draw.circle(screen, black, self.center, self.font_size)
 
 
-class event_handler():
+class EventHandler:
     def __init__(self):
         pass
-    
-    def handle(self,whiteboard, event):
+
+    @staticmethod
+    def handle(whiteboard, event):
+        out = False
         if event.type == pygame.QUIT:
             whiteboard.done = True
             whiteboard.switch_config("quit")
+            out = True
         if event.type == pygame.MOUSEBUTTONDOWN:
             coord = event.dict['pos']
             if coord[1] <= 30:
                 whiteboard.switch_config(event)
-        return
-    
-    
-    
-    
+                out = True
+        return out
+
+
+class HandlePoint(EventHandler, Point):
+    def __init__(self):
+        EventHandler.__init__(self)
+        Point.__init__(self)
+
+    @staticmethod
+    def draw_point(event, color, font_size, screen):
+        coord = event.dict['pos']
+        to_draw = Point(coord, event.dict['button'], color, font_size)
+        to_draw.draw(screen)
+
+
+class HandleLine(EventHandler, Line):
+    def __init__(self):
+        EventHandler.__init__(self)
+        Line.__init__(self)
+
+    @staticmethod
+    def handle_mouse_motion(whiteboard):
+        if whiteboard.draw:
+            whiteboard.mouse_position = pygame.mouse.get_pos()
+            if whiteboard.mouse_position[1] <= 30:
+                whiteboard.draw = False
+            elif whiteboard.last_pos is not None:
+                to_draw = Line(whiteboard.config["active_color"], whiteboard.last_pos, whiteboard.mouse_position,
+                               whiteboard.config["font_size"])
+                to_draw.draw(whiteboard.screen)
+            whiteboard.last_pos = whiteboard.mouse_position
+
+    @staticmethod
+    def handle_mouse_button_up(whiteboard):
+        whiteboard.mouse_position = (0, 0)
+        whiteboard.draw = False
+        whiteboard.last_pos = None
+
+    @staticmethod
+    def handle_mouse_button_down(whiteboard):
+        whiteboard.draw = True
+
+    @staticmethod
+    def handle_all(whiteboard, event):
+        if event.type == pygame.MOUSEMOTION:
+            HandleLine.handle_mouse_motion(whiteboard)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            HandleLine.handle_mouse_button_up(whiteboard)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            whiteboard.draw = True
+
+
+class HandleText(EventHandler, TextBox):
+    def __init__(self):
+        EventHandler.__init__(self)
+        TextBox.__init__(self)
+
+    @staticmethod
+    def box_selection(whiteboard, event):
+        if event.dict["button"] == 3:
+            coord = event.dict['pos']
+            text_box = TextBox(*coord, whiteboard.config["text_box"]["textbox_width"],
+                               whiteboard.config["text_box"]["textbox_length"],
+                               whiteboard.config["text_box"]["active_color"], whiteboard.config["text_box"]["font"],
+                               whiteboard.config["text_box"]["font_size"])
+            whiteboard.text_boxes.append(text_box)
+            if whiteboard.active_box is not None:
+                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+            whiteboard.active_box = text_box
+        elif event.dict["button"] == 1:
+            for box in whiteboard.text_boxes:
+                if box.rect.collidepoint(event.pos):
+                    whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+                    whiteboard.active_box = box
+                    whiteboard.active_box.color = whiteboard.config["text_box"]["active_color"]
+
+    @staticmethod
+    def write_in_box(whiteboard, event):
+        if whiteboard.active_box is not None:
+            if event.key == pygame.K_RETURN:
+                whiteboard.active_box.color = whiteboard.config["text_box"]["inactive_color"]
+                whiteboard.active_box = None
+            elif event.key == pygame.K_BACKSPACE:
+                whiteboard.active_box.text = whiteboard.active_box.text[:-1]
+            else:
+                whiteboard.active_box.text += event.unicode
+
+        if whiteboard.active_box is not None:
+            # Re-render the text.
+            whiteboard.active_box.txt_surface = whiteboard.active_box.sysfont.render(whiteboard.active_box.text, True,
+                                                                                     whiteboard.active_box.color)
