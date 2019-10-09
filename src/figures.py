@@ -31,16 +31,19 @@ class Line:
 
 class TextBox:
     id_counter = 0
-    def __init__(self, x, y, w, h, color, font, font_size, text=''):
+
+    def __init__(self, x, y, w, h, box_color, font, font_size, text='', text_color=None):
         self.rect = pygame.Rect(x, y, w, h)
-        self.color = color
+        self.color = box_color
         self.text = text
         self.sysfont = pygame.font.SysFont(font, font_size)
-        self.txt_surface = self.sysfont.render(text, True, self.color)
+        if text_color is None:
+            text_color = (0, 0, 0)
+        self.text_color = text_color
+        self.txt_surface = self.sysfont.render(text, True, self.text_color)
         self.active = False
         self.id_counter = TextBox.id_counter
         TextBox.id_counter += 1
-        print(TextBox.id_counter)
 
     def update(self, hist):
         # Resize the box if the text is too long.
@@ -56,11 +59,14 @@ class TextBox:
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
-def draw_point(params, screen):
-    return Point(*params).draw(screen) 
 
-def draw_line(params,screen):
-    return Line(*params).draw(screen) 
+def draw_point(params, screen):
+    return Point(*params).draw(screen)
+
+
+def draw_line(params, screen):
+    return Line(*params).draw(screen)
+
 
 def draw_textbox(params, screen, hist):
     return TextBox(*params).draw(screen)
