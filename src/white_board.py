@@ -87,6 +87,7 @@ class WhiteBoard:
         self.text_boxes = []
         self.active_box = None
 
+        
     def switch_config(self, event=None):
         if event == "quit":
             self.config["mode"] = "quit"
@@ -101,41 +102,6 @@ class WhiteBoard:
                 if font_size_.is_triggered(event):
                     self.config["font_size"] = font_size_.font_size
 
-    def handle_event_point_mode(self, event):
-
-        handled = EventHandler.handle(self, event)
-
-        if event.type == pygame.MOUSEBUTTONDOWN and not handled:
-            HandlePoint.draw_point(event, self.config["active_color"], self.config["font_size"], self.screen, self.hist)
-
-    def handle_event_line_mode(self, event):
-
-        handled = EventHandler.handle(self, event)
-
-        if not handled:
-            HandleLine.handle_all(self, event)
-
-    def handle_event_text_mode(self, event):
-        handled = EventHandler.handle(self, event)
-
-        if event.type == pygame.MOUSEBUTTONDOWN and not handled:
-            HandleText.box_selection(self, event)
-            #for box in self.text_boxes:
-                #box.update()
-                #box.draw(self.screen)
-
-        if event.type == pygame.KEYDOWN and not handled:
-            HandleText.write_in_box(self, event)
-            #for box in self.text_boxes:
-                #box.update()
-                #box.draw(self.screen)
-
-
-
-
-
-        pygame.display.flip()
-
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
                       key=lambda value: value["timestamp"])
@@ -148,17 +114,14 @@ class WhiteBoard:
                 draw_textbox(action["params"], self.screen, hist)
 
     def start(self):
+        self.handler = {"line" : HandleLine(self),
+                        "point" : HandlePoint(self),
+                        "text" : HandleText(self),
+                        }
         while not self.done:
-            while self.config["mode"] == "point":
-                for event in pygame.event.get():
-                    self.handle_event_point_mode(event)
-            while self.config["mode"] == "line":
-                for event in pygame.event.get():
-                    self.handle_event_line_mode(event)
-                pygame.display.update()
-            while self.config["mode"] == "text":
-                for event in pygame.event.get():
-                    self.handle_event_text_mode(event)
-        print(self.hist)
-        print(len(self.hist["actions"]))
+            for event in pygame.event.get():
+                if self.config["mode"] == "quit" :
+                    self.done = True
+                    break
+                self.handler[self.config["mode"]].handle_all(event)
         pygame.quit()
