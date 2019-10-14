@@ -2,7 +2,7 @@
   "board_background_color": [255, 255, 255],
   "width": 600,
   "length": 600,
-  "base_color": [0, 0, 0],
+  "active_color": [0, 0, 0],
   "font_size": 5,
   "mode" : "point",
   "mode_box_size" : [30,30],

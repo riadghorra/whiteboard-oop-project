@@ -27,7 +27,7 @@ class WhiteBoard:
         self.hist = start_hist
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, self.config["base_color"], [0, 30], [self.config["width"], 30], 1)
+        pygame.draw.line(self.screen, self.config["active_color"], [0, 30], [self.config["width"], 30], 1)
 
         self.modes = [Mode("point", (0, 0), tuple(self.config["mode_box_size"])),
                       Mode("line", (self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
@@ -82,10 +82,8 @@ class WhiteBoard:
                     self.config["mode"] = mod.name
             for col in self.colors:
                 if col.is_triggered(event):
-                    if self.config["mode"] == "text":
-                        self.config["text_box"]["text_color"] = col.color
-                    else:
-                        self.config["base_color"] = col.color
+                    self.config["text_box"]["text_color"] = col.color
+                    self.config["active_color"] = col.color
             for font_size_ in self.font_sizes:
                 if font_size_.is_triggered(event):
                     self.config["font_size"] = font_size_.font_size

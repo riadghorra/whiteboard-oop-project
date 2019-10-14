@@ -32,13 +32,11 @@ class Line:
 class TextBox:
     id_counter = 0
 
-    def __init__(self, x, y, w, h, box_color, font, font_size, text='', text_color=None):
+    def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = box_color
         self.text = text
         self.sysfont = pygame.font.SysFont(font, font_size)
-        if text_color is None:
-            text_color = (0, 0, 0)
         self.text_color = text_color
         self.txt_surface = self.sysfont.render(text, True, self.text_color)
         self.active = False
