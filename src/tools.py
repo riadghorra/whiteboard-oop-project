@@ -3,11 +3,6 @@ import pygame.draw
 from figures import Point, Line, TextBox
 from datetime import datetime
 
-black = [0, 0, 0]
-red = [255, 0, 0]
-green = [0, 255, 0]
-blue = [0, 0, 255]
-white = [255, 255, 255]
 client = "client"
 
 
@@ -26,7 +21,7 @@ class Mode(TriggerBox):
         self.name = name
 
     def add(self, screen):
-        pygame.draw.rect(screen, black, self.rect, 1)
+        pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
         font = pygame.font.Font(None, 18)
         legend = {"text": font.render(self.name, True, [0, 0, 0]), "coords": self.coords}
         screen.blit(legend["text"], legend["coords"])
@@ -48,8 +43,8 @@ class FontSizeBox(TriggerBox):
         self.center = [top_left[0] + size[0] // 2, top_left[1] + size[1] // 2]
 
     def add(self, screen):
-        pygame.draw.rect(screen, black, self.rect, 1)
-        pygame.draw.circle(screen, black, self.center, self.font_size)
+        pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
+        pygame.draw.circle(screen, [0, 0, 0], self.center, self.font_size)
 
 
 class EventHandler:
@@ -82,7 +77,7 @@ class HandlePoint(EventHandler):
             coord = event.dict["pos"]
             to_draw = Point(coord,
                             event.dict['button'],
-                            self.whiteboard.config["active_color"],
+                            self.whiteboard.config["base_color"],
                             self.whiteboard.config["font_size"])
             to_draw.draw(self.whiteboard.screen)
             now = datetime.now()
@@ -91,7 +86,7 @@ class HandlePoint(EventHandler):
                                                     "timestamp": timestamp,
                                                     "params": [coord,
                                                                event.dict['button'],
-                                                               self.whiteboard.config["active_color"],
+                                                               self.whiteboard.config["base_color"],
                                                                self.whiteboard.config["font_size"]],
                                                     "client": client})
 
@@ -106,7 +101,7 @@ class HandleLine(EventHandler):
             if self.whiteboard.mouse_position[1] <= 30:
                 self.whiteboard.draw = False
             elif self.whiteboard.last_pos is not None:
-                to_draw = Line(self.whiteboard.config["active_color"], self.whiteboard.last_pos,
+                to_draw = Line(self.whiteboard.config["base_color"], self.whiteboard.last_pos,
                                self.whiteboard.mouse_position,
                                self.whiteboard.config["font_size"])
                 to_draw.draw(self.whiteboard.screen)
@@ -114,7 +109,7 @@ class HandleLine(EventHandler):
                 timestamp = datetime.timestamp(now)
                 self.whiteboard.hist["actions"].append({"type": "Line",
                                                         "timestamp": timestamp,
-                                                        "params": [self.whiteboard.config["active_color"],
+                                                        "params": [self.whiteboard.config["base_color"],
                                                                    self.whiteboard.last_pos,
                                                                    self.whiteboard.mouse_position,
                                                                    self.whiteboard.config["font_size"]],

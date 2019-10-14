@@ -14,12 +14,6 @@ with open('config.json') as json_file:
 with open('historique.json') as json_file:
     start_hist = json.load(json_file)
 
-black = [0, 0, 0]
-red = [255, 0, 0]
-green = [0, 255, 0]
-blue = [0, 0, 255]
-white = [255, 255, 255]
-
 """
 Adresse client connecté au serveur
 """
@@ -33,7 +27,7 @@ class WhiteBoard:
         self.hist = start_hist
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
         self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, black, [0, 30], [self.config["width"], 30], 1)
+        pygame.draw.line(self.screen, self.config["base_color"], [0, 30], [self.config["width"], 30], 1)
 
         self.modes = [Mode("point", (0, 0), tuple(self.config["mode_box_size"])),
                       Mode("line", (self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
@@ -45,32 +39,25 @@ class WhiteBoard:
         """
         Choix des couleurs
         """
-        self.colors = [ColorBox(red, (self.config["width"] - self.config["mode_box_size"][0], 0),
-                                tuple(self.config["mode_box_size"])),
-                       ColorBox(green, (self.config["width"] - 2 * self.config["mode_box_size"][0], 0),
-                                tuple(self.config["mode_box_size"])),
-                       ColorBox(blue, (self.config["width"] - 3 * self.config["mode_box_size"][0], 0),
-                                tuple(self.config["mode_box_size"])),
-                       ColorBox(black, (self.config["width"] - 4 * self.config["mode_box_size"][0], 0),
-                                tuple(self.config["mode_box_size"]))
-                       ]
-        for color in self.colors:
-            color.add(self.screen)
+        self.colors = []
+        box_counter = 1
+        for key, value in self.config["color_palette"].items():
+            color_box = ColorBox(value, (self.config["width"] - box_counter * self.config["mode_box_size"][0], 0),
+                                 tuple(self.config["mode_box_size"]))
+            box_counter += 1
+            self.colors.append(color_box)
+            color_box.add(self.screen)
 
         """
         Choix des épaisseurs
         """
-        self.font_sizes = [FontSizeBox(5, (self.config["width"] - 5 * self.config["mode_box_size"][0], 0),
-                                       tuple(self.config["mode_box_size"])),
-                           FontSizeBox(8, (self.config["width"] - 6 * self.config["mode_box_size"][0], 0),
-                                       tuple(self.config["mode_box_size"])),
-                           FontSizeBox(10, (self.config["width"] - 7 * self.config["mode_box_size"][0], 0),
-                                       tuple(self.config["mode_box_size"])),
-                           FontSizeBox(12, (self.config["width"] - 8 * self.config["mode_box_size"][0], 0),
-                                       tuple(self.config["mode_box_size"]))
-                           ]
-        for font_size in self.font_sizes:
-            font_size.add(self.screen)
+        self.font_sizes = []
+        for size in self.config["pen_sizes"]:
+            font_size_box = FontSizeBox(size, (self.config["width"] - box_counter * self.config["mode_box_size"][0], 0),
+                                        tuple(self.config["mode_box_size"]))
+            box_counter += 1
+            self.font_sizes.append(font_size_box)
+            font_size_box.add(self.screen)
 
         """
         initialisation des variables de dessin
@@ -95,10 +82,10 @@ class WhiteBoard:
                     self.config["mode"] = mod.name
             for col in self.colors:
                 if col.is_triggered(event):
-                    if self.config["mode"]=="text":
+                    if self.config["mode"] == "text":
                         self.config["text_box"]["text_color"] = col.color
                     else:
-                        self.config["active_color"] = col.color
+                        self.config["base_color"] = col.color
             for font_size_ in self.font_sizes:
                 if font_size_.is_triggered(event):
                     self.config["font_size"] = font_size_.font_size
