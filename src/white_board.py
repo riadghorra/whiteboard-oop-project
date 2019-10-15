@@ -5,7 +5,7 @@ from tools import Mode, ColorBox, FontSizeBox, EventHandler, HandlePoint, Handle
 import json
 
 '''
-Ouverture de la configuration initiale
+Ouverture de la configuration initiale 
 '''
 
 with open('config.json') as json_file:
