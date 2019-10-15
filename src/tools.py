@@ -195,10 +195,7 @@ class HandleText(EventHandler):
 
     def write_in_box(self, event):
         if self.whiteboard.active_box is not None:
-            if event.key == pygame.K_RETURN:
-                self.whiteboard.active_box.color = self.whiteboard.config["text_box"]["inactive_color"]
-                self.whiteboard.active_box = None
-            elif event.key == pygame.K_BACKSPACE:
+            if event.key == pygame.K_BACKSPACE:
                 self.whiteboard.active_box.text = self.whiteboard.active_box.text[:-1]
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
@@ -208,6 +205,8 @@ class HandleText(EventHandler):
                                             (0, 31, self.whiteboard.config["width"],
                                              self.whiteboard.config["length"] - 31))
                 self.whiteboard.load_actions(self.whiteboard.hist)
+            elif event.key == pygame.K_TAB or event.key == pygame.K_RETURN:
+                pass
             else:
                 self.whiteboard.active_box.text += event.unicode
                 id_counter = self.whiteboard.active_box.id_counter
