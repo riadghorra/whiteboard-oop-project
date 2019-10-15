@@ -1,7 +1,9 @@
 import socket
 import json
 
-hote = '127.0.0.1'
+hote = '138.195.240.248'
+'''IP d'Arthur
+'''
 port = 5001
 
 
@@ -30,7 +32,6 @@ while msg_a_envoyer != b"END" and msg_recu.decode()!="end":
 
     connexion_avec_serveur.send(msg_a_envoyer)
     msg_recu = connexion_avec_serveur.recv(1024)
-    print(msg_recu)
     msg_decode=binary_to_dict(msg_recu)
     print(msg_decode)
     print(msg_decode["message"])

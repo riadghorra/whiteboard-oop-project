@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 clients=[]
-historique={"message":"","Line":{},"Point":{},"Textbox":{}}
+historique={"message": "","Line": {},"Point": {}, "Textbox": {}}
 
 
 
