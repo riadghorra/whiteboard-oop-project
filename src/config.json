@@ -1,0 +1,26 @@
+{
+  "board_background_color": [255, 255, 255],
+  "width": 600,
+  "length": 600,
+  "active_color": [0, 0, 0],
+  "font_size": 5,
+  "mode" : "point",
+  "mode_box_size" : [30,30],
+  "color_palette": {
+    "black" : [0, 0, 0],
+    "red" : [255, 0, 0],
+    "green" : [0, 255, 0],
+    "blue" : [0, 0, 255],
+    "yellow" : [255, 255, 0]
+  },
+  "pen_sizes" : [5, 8, 10, 12],
+  "text_box": {
+    "active_color": [30, 30, 30],
+    "inactive_color": [180, 180, 180],
+    "font_size": 20,
+    "font": "timesnewroman",
+    "textbox_length": 32,
+    "textbox_width": 140,
+    "text_color": [0, 0, 0]
+  }
+}
