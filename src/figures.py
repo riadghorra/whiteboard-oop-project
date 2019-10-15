@@ -49,7 +49,7 @@ class TextBox:
         self.rect.w = width
         for action in [x for x in hist['actions'] if x['type'] == 'Text_box']:
             if action['id'] == self.id_counter:
-                action['params'][2] = width
+                action['params']["w"] = width
 
     def draw(self, screen):
         # Blit the text.
@@ -59,12 +59,12 @@ class TextBox:
 
 
 def draw_point(params, screen):
-    return Point(*params).draw(screen)
+    return Point(**params).draw(screen)
 
 
 def draw_line(params, screen):
-    return Line(*params).draw(screen)
+    return Line(**params).draw(screen)
 
 
-def draw_textbox(params, screen, hist):
-    return TextBox(*params).draw(screen)
+def draw_textbox(params, screen):
+    return TextBox(**params).draw(screen)

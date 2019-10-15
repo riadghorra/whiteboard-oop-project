@@ -22,7 +22,7 @@ Adresse client connecté au serveur
 class WhiteBoard:
     def __init__(self):
         pygame.init()
-        self.done = False
+        self._done = False
         self.config = start_config
         self.hist = start_hist
         self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
@@ -73,6 +73,16 @@ class WhiteBoard:
         self.text_boxes = []
         self.active_box = None
 
+    """
+    Gestion encapsulation et propriétés
+    """
+
+    def _get_is_done(self):
+        return self._done
+
+    def end(self):
+        self._done = True
+
     def switch_config(self, event=None):
         if event == "quit":
             self.config["mode"] = "quit"
@@ -97,17 +107,17 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.screen, hist)
+                draw_textbox(action["params"], self.screen)
 
     def start(self):
         self.handler = {"line": HandleLine(self),
                         "point": HandlePoint(self),
                         "text": HandleText(self),
                         }
-        while not self.done:
+        while not self._get_is_done():
             for event in pygame.event.get():
                 if self.config["mode"] == "quit":
-                    self.done = True
+                    self.end()
                     break
                 self.handler[self.config["mode"]].handle_all(event)
         pygame.quit()

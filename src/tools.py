@@ -54,7 +54,7 @@ class EventHandler:
     def handle(self, event):
         out = False
         if event.type == pygame.QUIT:
-            self.whiteboard.done = True
+            self.whiteboard.end()
             self.whiteboard.switch_config("quit")
             out = True
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -84,10 +84,13 @@ class HandlePoint(EventHandler):
             timestamp = datetime.timestamp(now)
             self.whiteboard.hist["actions"].append({"type": "Point",
                                                     "timestamp": timestamp,
-                                                    "params": [coord,
-                                                               event.dict['button'],
-                                                               self.whiteboard.config["active_color"],
-                                                               self.whiteboard.config["font_size"]],
+                                                    # "params": [coord,
+                                                    #            event.dict['button'],
+                                                    #            self.whiteboard.config["active_color"],
+                                                    #            self.whiteboard.config["font_size"]],
+                                                    "params": {"coord": coord, "clicktype": event.dict['button'],
+                                                               "point_color": self.whiteboard.config["active_color"],
+                                                               "font_size": self.whiteboard.config["font_size"]},
                                                     "client": client})
 
 
@@ -109,10 +112,14 @@ class HandleLine(EventHandler):
                 timestamp = datetime.timestamp(now)
                 self.whiteboard.hist["actions"].append({"type": "Line",
                                                         "timestamp": timestamp,
-                                                        "params": [self.whiteboard.config["active_color"],
-                                                                   self.whiteboard.last_pos,
-                                                                   self.whiteboard.mouse_position,
-                                                                   self.whiteboard.config["font_size"]],
+                                                        # "params": [self.whiteboard.config["active_color"],
+                                                        #            self.whiteboard.last_pos,
+                                                        #            self.whiteboard.mouse_position,
+                                                        #            self.whiteboard.config["font_size"]],
+                                                        "params": {"line_color": self.whiteboard.config["active_color"],
+                                                                   "start_pos": self.whiteboard.last_pos,
+                                                                   "end_pos": self.whiteboard.mouse_position,
+                                                                   "font_size": self.whiteboard.config["font_size"]},
                                                         "client": client})
             self.whiteboard.last_pos = self.whiteboard.mouse_position
 
@@ -156,13 +163,24 @@ class HandleText(EventHandler):
             self.whiteboard.hist["actions"].append({"type": "Text_box",
                                                     "timestamp": timestamp,
                                                     "id": text_box.id_counter,
-                                                    "params": [*coord,
-                                                               self.whiteboard.config["text_box"]["textbox_width"],
-                                                               self.whiteboard.config["text_box"]["textbox_length"],
-                                                               self.whiteboard.config["text_box"]["active_color"],
-                                                               self.whiteboard.config["text_box"]["font"],
-                                                               self.whiteboard.config["text_box"]["font_size"],
-                                                               "", self.whiteboard.config["active_color"]],
+                                                    # "params": [*coord,
+                                                    #            self.whiteboard.config["text_box"]["textbox_width"],
+                                                    #            self.whiteboard.config["text_box"]["textbox_length"],
+                                                    #            self.whiteboard.config["text_box"]["active_color"],
+                                                    #            self.whiteboard.config["text_box"]["font"],
+                                                    #            self.whiteboard.config["text_box"]["font_size"],
+                                                    #            "", self.whiteboard.config["active_color"]]
+                                                    "params": {"x": coord[0], "y": coord[1],
+                                                               "w": self.whiteboard.config["text_box"]["textbox_width"],
+                                                               "h": self.whiteboard.config["text_box"][
+                                                                   "textbox_length"],
+                                                               "box_color": self.whiteboard.config["text_box"][
+                                                                   "active_color"],
+                                                               "font": self.whiteboard.config["text_box"]["font"],
+                                                               "font_size": self.whiteboard.config["text_box"][
+                                                                   "font_size"],
+                                                               "text": "",
+                                                               "text_color": self.whiteboard.config["active_color"]},
                                                     "client": client})
             text_box.draw(self.whiteboard.screen)
             if self.whiteboard.active_box is not None:
@@ -170,8 +188,8 @@ class HandleText(EventHandler):
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params'][-2] = self.whiteboard.active_box.text
-                        action['params'][4] = self.whiteboard.config["text_box"]["inactive_color"]
+                        action['params']["text"] = self.whiteboard.active_box.text
+                        action['params']["box_color"] = self.whiteboard.config["text_box"]["inactive_color"]
                         self.whiteboard.load_actions(self.whiteboard.hist)
             self.whiteboard.active_box = text_box
         elif event.dict["button"] == 1:
@@ -182,15 +200,15 @@ class HandleText(EventHandler):
                     id_counter = self.whiteboard.active_box.id_counter
                     for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
-                            action['params'][-2] = self.whiteboard.active_box.text
-                            action['params'][4] = self.whiteboard.config["text_box"]["inactive_color"]
+                            action['params']["text"] = self.whiteboard.active_box.text
+                            action['params']["box_color"] = self.whiteboard.config["text_box"]["inactive_color"]
                     self.whiteboard.active_box.draw(self.whiteboard.screen)
                     self.whiteboard.active_box = box
                     self.whiteboard.active_box.color = self.whiteboard.config["text_box"]["active_color"]
                     id_counter = self.whiteboard.active_box.id_counter
                     for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
-                            action['params'][4] = self.whiteboard.config["text_box"]["active_color"]
+                            action['params']["box_color"] = self.whiteboard.config["text_box"]["active_color"]
                     box.draw(self.whiteboard.screen)
 
     def write_in_box(self, event):
@@ -200,7 +218,7 @@ class HandleText(EventHandler):
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params'][-2] = self.whiteboard.active_box.text
+                        action['params']["text"] = self.whiteboard.active_box.text
                 self.whiteboard.screen.fill((255, 255, 255),
                                             (0, 31, self.whiteboard.config["width"],
                                              self.whiteboard.config["length"] - 31))
@@ -212,7 +230,7 @@ class HandleText(EventHandler):
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.hist['actions'] if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params'][-2] = self.whiteboard.active_box.text
+                        action['params']["text"] = self.whiteboard.active_box.text
                 self.whiteboard.active_box.update(self.whiteboard.hist)
                 self.whiteboard.screen.fill((255, 255, 255),
                                             (0, 31, self.whiteboard.config["width"],
