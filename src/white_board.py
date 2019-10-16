@@ -1,8 +1,11 @@
 import pygame
 import pygame.draw
+import json
+from functools import reduce
+import operator
+
 from figures import Point, Line, TextBox, draw_line, draw_point, draw_textbox
 from tools import Mode, ColorBox, FontSizeBox, EventHandler, HandlePoint, HandleLine, HandleText
-import json
 
 '''
 Ouverture de la configuration initiale
@@ -23,27 +26,32 @@ class WhiteBoard:
     def __init__(self):
         pygame.init()
         self._done = False
-        self.config = start_config
+        self._config = start_config
         self.hist = start_hist
-        self.screen = pygame.display.set_mode([self.config["width"], self.config["length"]])
-        self.screen.fill(self.config["board_background_color"])
-        pygame.draw.line(self.screen, self.config["active_color"], [0, 30], [self.config["width"], 30], 1)
+        self.screen = pygame.display.set_mode([self._config["width"], self._config["length"]])
+        self.screen.fill(self._config["board_background_color"])
+        self.handler = {"line": HandleLine(self),
+                        "point": HandlePoint(self),
+                        "text": HandleText(self),
+                        }
+        pygame.draw.line(self.screen, self._config["active_color"], [0, 30], [self._config["width"], 30], 1)
 
-        self.modes = [Mode("point", (0, 0), tuple(self.config["mode_box_size"])),
-                      Mode("line", (self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"])),
-                      Mode("text", (2 * self.config["mode_box_size"][0], 0), tuple(self.config["mode_box_size"]))
+        self.modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
+                      Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                      Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                       ]
         for mod in self.modes:
             mod.add(self.screen)
+
 
         """
         Choix des couleurs
         """
         self.colors = []
         box_counter = 1
-        for key, value in self.config["color_palette"].items():
-            color_box = ColorBox(value, (self.config["width"] - box_counter * self.config["mode_box_size"][0], 0),
-                                 tuple(self.config["mode_box_size"]))
+        for key, value in self._config["color_palette"].items():
+            color_box = ColorBox(value, (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
+                                 tuple(self._config["mode_box_size"]))
             box_counter += 1
             self.colors.append(color_box)
             color_box.add(self.screen)
@@ -52,9 +60,10 @@ class WhiteBoard:
         Choix des épaisseurs
         """
         self.font_sizes = []
-        for size in self.config["pen_sizes"]:
-            font_size_box = FontSizeBox(size, (self.config["width"] - box_counter * self.config["mode_box_size"][0], 0),
-                                        tuple(self.config["mode_box_size"]))
+        for size in self._config["pen_sizes"]:
+            font_size_box = FontSizeBox(size,
+                                        (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
+                                        tuple(self._config["mode_box_size"]))
             box_counter += 1
             self.font_sizes.append(font_size_box)
             font_size_box.add(self.screen)
@@ -74,7 +83,7 @@ class WhiteBoard:
         self.active_box = None
 
     """
-    Gestion encapsulation et propriétés
+    Encapsulation
     """
 
     def _get_is_done(self):
@@ -83,20 +92,47 @@ class WhiteBoard:
     def end(self):
         self._done = True
 
+    def get_config(self, maplist):
+        """
+        Getter of config file. Uses a list of keys to traverse the config dict
+        :param maplist: list of keys from parent to child to get the wanted value (list)
+        :return: value of a key in the config file (object)
+        """
+        if not type(maplist) == list:
+            maplist = list(maplist)
+        try:
+            return reduce(operator.getitem, maplist, self._config)
+        except (KeyError, TypeError):
+            return None
+
+    def set_config(self, maplist, value):
+        """
+        Setter of config file. Uses the getter and assigns value to a key
+        :param maplist: list of keys from parent to child to get the wanted value (list)
+        :param value: value to set (object)
+        :return: None if failed
+        """
+        if not type(maplist) == list:
+            maplist = list(maplist)
+        try:
+            self.get_config(maplist[:-1])[maplist[-1]] = value
+        except (KeyError, TypeError):
+            return None
+
     def switch_config(self, event=None):
         if event == "quit":
-            self.config["mode"] = "quit"
+            self.set_config(["mode"], "quit")
         else:
             for mod in self.modes:
                 if mod.is_triggered(event):
-                    self.config["mode"] = mod.name
+                    self.set_config(["mode"], mod.name)
             for col in self.colors:
                 if col.is_triggered(event):
-                    self.config["text_box"]["text_color"] = col.color
-                    self.config["active_color"] = col.color
+                    self.set_config(["text_box", "text_color"], col.color)
+                    self.set_config(["active_color"], col.color)
             for font_size_ in self.font_sizes:
                 if font_size_.is_triggered(event):
-                    self.config["font_size"] = font_size_.font_size
+                    self.set_config(["font_size"], font_size_.font_size)
 
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
@@ -110,14 +146,10 @@ class WhiteBoard:
                 draw_textbox(action["params"], self.screen)
 
     def start(self):
-        self.handler = {"line": HandleLine(self),
-                        "point": HandlePoint(self),
-                        "text": HandleText(self),
-                        }
         while not self._get_is_done():
             for event in pygame.event.get():
-                if self.config["mode"] == "quit":
+                if self.get_config(["mode"]) == "quit":
                     self.end()
                     break
-                self.handler[self.config["mode"]].handle_all(event)
+                self.handler[self.get_config(["mode"])].handle_all(event)
         pygame.quit()
