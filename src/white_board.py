@@ -27,46 +27,46 @@ class WhiteBoard:
         pygame.init()
         self._done = False
         self._config = start_config
-        self.hist = start_hist
-        self.screen = pygame.display.set_mode([self._config["width"], self._config["length"]])
-        self.screen.fill(self._config["board_background_color"])
-        self.handler = {"line": HandleLine(self),
+        self._hist = start_hist
+        self._screen = pygame.display.set_mode([self._config["width"], self._config["length"]])
+        self._screen.fill(self._config["board_background_color"])
+        self._handler = {"line": HandleLine(self),
                         "point": HandlePoint(self),
                         "text": HandleText(self),
                         }
-        pygame.draw.line(self.screen, self._config["active_color"], [0, 30], [self._config["width"], 30], 1)
+        pygame.draw.line(self._screen, self._config["active_color"], [0, self._config["toolbar_y"]],
+                         [self._config["width"], self._config["toolbar_y"]], 1)
 
-        self.modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
+        self._modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
                       Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                       Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                       ]
-        for mod in self.modes:
-            mod.add(self.screen)
-
+        for mod in self._modes:
+            mod.add(self._screen)
 
         """
         Choix des couleurs
         """
-        self.colors = []
+        self._colors = []
         box_counter = 1
         for key, value in self._config["color_palette"].items():
             color_box = ColorBox(value, (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
                                  tuple(self._config["mode_box_size"]))
             box_counter += 1
-            self.colors.append(color_box)
-            color_box.add(self.screen)
+            self._colors.append(color_box)
+            color_box.add(self._screen)
 
         """
         Choix des épaisseurs
         """
-        self.font_sizes = []
+        self._font_sizes = []
         for size in self._config["pen_sizes"]:
             font_size_box = FontSizeBox(size,
                                         (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
                                         tuple(self._config["mode_box_size"]))
             box_counter += 1
-            self.font_sizes.append(font_size_box)
-            font_size_box.add(self.screen)
+            self._font_sizes.append(font_size_box)
+            font_size_box.add(self._screen)
 
         """
         initialisation des variables de dessin
@@ -119,18 +119,40 @@ class WhiteBoard:
         except (KeyError, TypeError):
             return None
 
+    def get_hist(self, key=None):
+        if key is None:
+            return self._hist
+        else:
+            return self._hist[key]
+
+    def add_to_hist(self, key, value):
+        self._hist[key].append(value)
+
+    def get_screen(self):
+        return self._screen
+
+    def clear_screen(self):
+        """
+        Clear the screen by coloring it to background color. Does not color the toolbar
+        :return:
+        """
+        self._screen.fill(self.get_config(["board_background_color"]), (0, self.get_config(["toolbar_y"]) + 1,
+                                                                        self.get_config(["width"]),
+                                                                        self.get_config(["length"]) - self.get_config(
+                                                                            ["toolbar_y"]) + 1))
+
     def switch_config(self, event=None):
         if event == "quit":
             self.set_config(["mode"], "quit")
         else:
-            for mod in self.modes:
+            for mod in self._modes:
                 if mod.is_triggered(event):
                     self.set_config(["mode"], mod.name)
-            for col in self.colors:
+            for col in self._colors:
                 if col.is_triggered(event):
                     self.set_config(["text_box", "text_color"], col.color)
                     self.set_config(["active_color"], col.color)
-            for font_size_ in self.font_sizes:
+            for font_size_ in self._font_sizes:
                 if font_size_.is_triggered(event):
                     self.set_config(["font_size"], font_size_.font_size)
 
@@ -139,11 +161,11 @@ class WhiteBoard:
                       key=lambda value: value["timestamp"])
         for action in sred:
             if action["type"] == "Point":
-                draw_point(action["params"], self.screen)
+                draw_point(action["params"], self.get_screen())
             if action["type"] == "Line":
-                draw_line(action["params"], self.screen)
+                draw_line(action["params"], self.get_screen())
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.screen)
+                draw_textbox(action["params"], self.get_screen())
 
     def start(self):
         while not self._get_is_done():
@@ -151,5 +173,5 @@ class WhiteBoard:
                 if self.get_config(["mode"]) == "quit":
                     self.end()
                     break
-                self.handler[self.get_config(["mode"])].handle_all(event)
+                self._handler[self.get_config(["mode"])].handle_all(event)
         pygame.quit()
