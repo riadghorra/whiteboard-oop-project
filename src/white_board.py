@@ -72,14 +72,14 @@ class WhiteBoard:
         initialisation des variables de dessin
         """
         pygame.display.flip()
-        self.draw = False
-        self.last_pos = None
-        self.mouse_position = (0, 0)
+        self._draw = False
+        self._last_pos = None
+        self._mouse_position = (0, 0)
 
         """
         Initialisation des paramètres des text boxes
         """
-        self.text_boxes = []
+        self._text_boxes = []
         self.active_box = None
 
     """
@@ -140,6 +140,30 @@ class WhiteBoard:
                                                                         self.get_config(["width"]),
                                                                         self.get_config(["length"]) - self.get_config(
                                                                             ["toolbar_y"]) + 1))
+
+    def get_draw(self):
+        return self._draw
+
+    def set_draw(self, boolean):
+        self._draw = boolean
+
+    def get_last_pos(self):
+        return self._last_pos
+
+    def set_last_pos(self, value):
+        self._last_pos = value
+
+    def get_mouse_position(self):
+        return self._mouse_position
+
+    def set_mouse_position(self, value):
+        self._mouse_position = value
+
+    def get_text_boxes(self):
+        return self._text_boxes
+
+    def append_text_box(self, textbox):
+        self._text_boxes.append(textbox)
 
     def switch_config(self, event=None):
         if event == "quit":

@@ -95,13 +95,13 @@ class HandleLine(EventHandler):
         EventHandler.__init__(self, whiteboard)
 
     def handle_mouse_motion(self):
-        if self.whiteboard.draw:
-            self.whiteboard.mouse_position = pygame.mouse.get_pos()
-            if self.whiteboard.mouse_position[1] <= self.whiteboard.get_config(["toolbar_y"]):
-                self.whiteboard.draw = False
-            elif self.whiteboard.last_pos is not None:
-                to_draw = Line(self.whiteboard.get_config(["active_color"]), self.whiteboard.last_pos,
-                               self.whiteboard.mouse_position,
+        if self.whiteboard.get_draw():
+            self.whiteboard.set_mouse_position(pygame.mouse.get_pos())
+            if self.whiteboard.get_mouse_position()[1] <= self.whiteboard.get_config(["toolbar_y"]):
+                self.whiteboard.set_draw(False)
+            elif self.whiteboard.get_last_pos() is not None:
+                to_draw = Line(self.whiteboard.get_config(["active_color"]), self.whiteboard.get_last_pos(),
+                               self.whiteboard.get_mouse_position(),
                                self.whiteboard.get_config(["font_size"]))
                 to_draw.draw(self.whiteboard.get_screen())
                 now = datetime.now()
@@ -109,19 +109,19 @@ class HandleLine(EventHandler):
                 self.whiteboard.add_to_hist("actions", {"type": "Line", "timestamp": timestamp,
                                                         "params": {
                                                             "line_color": self.whiteboard.get_config(["active_color"]),
-                                                            "start_pos": self.whiteboard.last_pos,
-                                                            "end_pos": self.whiteboard.mouse_position,
+                                                            "start_pos": self.whiteboard.get_last_pos(),
+                                                            "end_pos": self.whiteboard.get_mouse_position(),
                                                             "font_size": self.whiteboard.get_config(["font_size"])},
                                                         "client": client})
-            self.whiteboard.last_pos = self.whiteboard.mouse_position
+            self.whiteboard.set_last_pos(self.whiteboard.get_mouse_position())
 
     def handle_mouse_button_up(self):
-        self.whiteboard.mouse_position = (0, 0)
-        self.whiteboard.draw = False
-        self.whiteboard.last_pos = None
+        self.whiteboard.set_mouse_position((0, 0))
+        self.whiteboard.set_draw(False)
+        self.whiteboard.set_last_pos(None)
 
     def handle_mouse_button_down(self):
-        self.whiteboard.draw = True
+        self.whiteboard.set_draw(True)
 
     def handle_all(self, event):
         handled = self.handle(event)
@@ -149,7 +149,7 @@ class HandleText(EventHandler):
                                self.whiteboard.get_config(["text_box", "font"]),
                                self.whiteboard.get_config(["text_box", "font_size"]), "",
                                self.whiteboard.get_config(["active_color"]))
-            self.whiteboard.text_boxes.append(text_box)
+            self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
             self.whiteboard.add_to_hist("actions", {"type": "Text_box", "timestamp": timestamp,
@@ -179,7 +179,7 @@ class HandleText(EventHandler):
                         self.whiteboard.load_actions(self.whiteboard.get_hist())
             self.whiteboard.active_box = text_box
         elif event.dict["button"] == 1:
-            for box in self.whiteboard.text_boxes:
+            for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
                     if self.whiteboard.active_box is not None:
                         self.whiteboard.active_box.color = self.whiteboard.get_config(["text_box", "inactive_color"])
