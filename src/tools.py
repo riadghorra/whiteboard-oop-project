@@ -170,11 +170,11 @@ class HandleText(EventHandler):
                                                     "client": client})
             text_box.draw(self.whiteboard.get_screen())
             if self.whiteboard.active_box is not None:
-                self.whiteboard.active_box.color = self.whiteboard.get_config(["text_box", "inactive_color"])
+                self.whiteboard.active_box.set_textbox_color(self.whiteboard.get_config(["text_box", "inactive_color"]))
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.text
+                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                         action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
                         self.whiteboard.load_actions(self.whiteboard.get_hist())
             self.whiteboard.active_box = text_box
@@ -182,15 +182,17 @@ class HandleText(EventHandler):
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
                     if self.whiteboard.active_box is not None:
-                        self.whiteboard.active_box.color = self.whiteboard.get_config(["text_box", "inactive_color"])
+                        self.whiteboard.active_box.set_textbox_color(
+                            self.whiteboard.get_config(["text_box", "inactive_color"]))
                     id_counter = self.whiteboard.active_box.id_counter
                     for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
-                            action['params']["text"] = self.whiteboard.active_box.text
+                            action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                             action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
                     self.whiteboard.active_box.draw(self.whiteboard.get_screen())
                     self.whiteboard.active_box = box
-                    self.whiteboard.active_box.color = self.whiteboard.get_config(["text_box", "active_color"])
+                    self.whiteboard.active_box.set_textbox_color(
+                        self.whiteboard.get_config(["text_box", "active_color"]))
                     id_counter = self.whiteboard.active_box.id_counter
                     for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
@@ -200,30 +202,30 @@ class HandleText(EventHandler):
     def write_in_box(self, event):
         if self.whiteboard.active_box is not None:
             if event.key == pygame.K_BACKSPACE:
-                self.whiteboard.active_box.text = self.whiteboard.active_box.text[:-1]
+                self.whiteboard.active_box.delete_char_from_text()
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.text
+                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
             elif event.key == pygame.K_TAB or event.key == pygame.K_RETURN:
                 pass
             else:
-                self.whiteboard.active_box.text += event.unicode
+                self.whiteboard.active_box.add_character_to_text(event.unicode)
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.text
+                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                 self.whiteboard.active_box.update(self.whiteboard.get_hist())
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
 
         if self.whiteboard.active_box is not None:
             # Re-render the text.
-            self.whiteboard.active_box.txt_surface = self.whiteboard.active_box.sysfont.render(
-                self.whiteboard.active_box.text, True,
-                self.whiteboard.active_box.color)
+            self.whiteboard.active_box.set_txt_surface(self.whiteboard.active_box.render_font(
+                self.whiteboard.active_box.get_textbox_text(),
+                self.whiteboard.active_box.get_textbox_color()))
 
     def handle_all(self, event):
         handled = self.handle(event)

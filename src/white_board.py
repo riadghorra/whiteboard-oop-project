@@ -31,16 +31,16 @@ class WhiteBoard:
         self._screen = pygame.display.set_mode([self._config["width"], self._config["length"]])
         self._screen.fill(self._config["board_background_color"])
         self._handler = {"line": HandleLine(self),
-                        "point": HandlePoint(self),
-                        "text": HandleText(self),
-                        }
+                         "point": HandlePoint(self),
+                         "text": HandleText(self),
+                         }
         pygame.draw.line(self._screen, self._config["active_color"], [0, self._config["toolbar_y"]],
                          [self._config["width"], self._config["toolbar_y"]], 1)
 
         self._modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
-                      Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                      Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
-                      ]
+                       Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                       Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+                       ]
         for mod in self._modes:
             mod.add(self._screen)
 
