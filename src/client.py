@@ -37,7 +37,33 @@ print("Connexion réussie avec le serveur")
 
 msg_recu = connexion_avec_serveur.recv(2 ** 24)
 msg_decode = binary_to_dict(msg_recu)
-start_hist = msg_decode
-print(start_hist)
-whiteboard = WhiteBoard(start_hist)
+hist = msg_decode
+whiteboard = WhiteBoard(hist)
 whiteboard.start()
+print("bla")
+last_timestamp=0
+for action in hist["actions"]:
+    if action["timestamp"] > last_timestamp:
+        last_timestamp=action["timestamp"]
+
+while hist["message"] != "end" and not whiteboard.is_done():
+    msg_recu = connexion_avec_serveur.recv(2 ** 24)
+    new_hist = binary_to_dict(msg_recu)
+    new_last_timestamp=last_timestamp
+    for action in new_hist["actions"]:
+        if action["timestamp"] > last_timestamp:
+            whiteboard.add_to_hist(action)
+            if action["timestamp"] > new_last_timestamp:
+                new_last_timestamp=action["timestamp"]
+    last_timestamp=new_last_timestamp
+    msg_a_envoyer = whiteboard.get_hist()
+    msg_a_envoyer["message"] = "CARRY ON"
+    msg_a_envoyer = msg_a_envoyer.encode()
+    connexion_avec_serveur.send(msg_a_envoyer)
+    print("hist envoyé")
+
+print("Fermeture de la connexion")
+msg_a_envoyer["message"] = "END"
+msg_a_envoyer = msg_a_envoyer.encode()
+connexion_avec_serveur.send(msg_a_envoyer)
+connexion_avec_serveur.close()

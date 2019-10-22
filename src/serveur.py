@@ -27,17 +27,10 @@ class Client(Thread):
     def run(self):
         while not self.done:
             msg_recu = self.nom.recv(2 ** 24)
-            msg_recu = msg_recu.decode()
-            now = datetime.now()
-            timestamp = datetime.timestamp(now)
-            historique.update({timestamp: (msg_recu)})
-            if msg_recu == "END":
+            historique = msg_recu.decode()
+            if historique["message"] == "END":
                 done = True
                 historique["message"] = "end"
-            if msg_recu == "START":
-                historique["message"] = "Demarrage du whiteboard"
-            else:
-                historique["message"] = msg_recu + " recu 5/5"
             self.nom.send(dict_to_binary(historique))
 
     def setclient(self, c):
@@ -58,6 +51,8 @@ def main():
         new_thread.setclient(client)
         clients.append(new_thread)
         new_thread.start()
+        new_thread.join()
+    print('truc')
 
 
 if __name__ == '__main__':
