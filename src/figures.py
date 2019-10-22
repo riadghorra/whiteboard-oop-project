@@ -8,6 +8,7 @@ class Point:
         self.clicktype = clicktype
         self.point_color = point_color
         self.font_size = font_size
+        self.type = "Point"
 
     def draw(self, screen):
         if self.clicktype != 1:
@@ -16,6 +17,10 @@ class Point:
         pygame.display.flip()
         return
 
+    def fetch_params(self):
+        return {"coord": self.coord, "clicktype": self.clicktype, "point_color": self.point_color,
+                "font_size": self.font_size}
+
 
 class Line:
     def __init__(self, line_color, start_pos, end_pos, font_size):
@@ -23,28 +28,41 @@ class Line:
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.font_size = font_size
+        self.type = "Line"
 
     def draw(self, screen):
         pygame.draw.line(screen, self.line_color, self.start_pos, self.end_pos, self.font_size)
         return
+
+    def fetch_params(self):
+        return {"line_color": self.line_color, "start_pos": self.start_pos, "end_pos": self.end_pos,
+                "font_size": self.font_size}
 
 
 class TextBox:
     id_counter = 0
 
     def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
-        self.rect = pygame.Rect(x, y, w, h)
+        self.__rect = pygame.Rect(x, y, w, h)
         self._color = box_color
         self._text = text
+        self._font = font
+        self._font_size = font_size
         self._sysfont = pygame.font.SysFont(font, font_size)
         self._text_color = text_color
         self._txt_surface = self._sysfont.render(text, True, self._text_color)
         self.id_counter = TextBox.id_counter
+        self.type = "Text_box"
         TextBox.id_counter += 1
 
     """
     Encapsulation
     """
+
+    def fetch_params(self):
+        return {"x": self.__rect.x, "y": self.__rect.y, "w": self.__rect.w, "h": self.__rect.h,
+                "box_color": self._color, "font": self._font, "font_size": self._font_size, "text": self._text,
+                "text_color": self._text_color}
 
     def get_textbox_color(self):
         return self._color
@@ -67,28 +85,29 @@ class TextBox:
     def set_txt_surface(self, value):
         self._txt_surface = value
 
+    @property
+    def rect(self):
+        return self.__rect
+
     def update(self, hist):
         # Resize the box if the text is too long.
         width = max(140, self._txt_surface.get_width() + 20)
-        self.rect.w = width
+        self.__rect.w = width
         for action in [x for x in hist['actions'] if x['type'] == 'Text_box']:
             if action['id'] == self.id_counter:
                 action['params']["w"] = width
 
     def draw(self, screen):
         # Blit the text.
-        screen.blit(self._txt_surface, (self.rect.x + 5, self.rect.y + 5))
+        screen.blit(self._txt_surface, (self.__rect.x + 5, self.__rect.y + 5))
         # Blit the rect.
-        pygame.draw.rect(screen, self._color, self.rect, 2)
-
+        pygame.draw.rect(screen, self._color, self.__rect, 2)
 
 def draw_point(params, screen):
     return Point(**params).draw(screen)
 
-
 def draw_line(params, screen):
     return Line(**params).draw(screen)
-
 
 def draw_textbox(params, screen):
     return TextBox(**params).draw(screen)

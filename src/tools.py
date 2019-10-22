@@ -79,15 +79,9 @@ class HandlePoint(EventHandler):
                             event.dict['button'],
                             self.whiteboard.get_config(["active_color"]),
                             self.whiteboard.get_config(["font_size"]))
-            to_draw.draw(self.whiteboard.get_screen())
             now = datetime.now()
             timestamp = datetime.timestamp(now)
-            self.whiteboard.add_to_hist("actions", {"type": "Point", "timestamp": timestamp,
-                                                    "params": {"coord": coord, "clicktype": event.dict['button'],
-                                                               "point_color": self.whiteboard.get_config(
-                                                                   ["active_color"]),
-                                                               "font_size": self.whiteboard.get_config(["font_size"])},
-                                                    "client": client})
+            self.whiteboard.draw(to_draw, timestamp, client)
 
 
 class HandleLine(EventHandler):
@@ -95,33 +89,26 @@ class HandleLine(EventHandler):
         EventHandler.__init__(self, whiteboard)
 
     def handle_mouse_motion(self):
-        if self.whiteboard.get_draw():
-            self.whiteboard.set_mouse_position(pygame.mouse.get_pos())
-            if self.whiteboard.get_mouse_position()[1] <= self.whiteboard.get_config(["toolbar_y"]):
-                self.whiteboard.set_draw(False)
-            elif self.whiteboard.get_last_pos() is not None:
-                to_draw = Line(self.whiteboard.get_config(["active_color"]), self.whiteboard.get_last_pos(),
-                               self.whiteboard.get_mouse_position(),
+        if self.whiteboard.is_drawing():
+            self.whiteboard.mouse_position = pygame.mouse.get_pos()
+            if self.whiteboard.mouse_position[1] <= self.whiteboard.get_config(["toolbar_y"]):
+                self.whiteboard.pen_up()
+            elif self.whiteboard.last_pos is not None:
+                to_draw = Line(self.whiteboard.get_config(["active_color"]), self.whiteboard.last_pos,
+                               self.whiteboard.mouse_position,
                                self.whiteboard.get_config(["font_size"]))
-                to_draw.draw(self.whiteboard.get_screen())
                 now = datetime.now()
                 timestamp = datetime.timestamp(now)
-                self.whiteboard.add_to_hist("actions", {"type": "Line", "timestamp": timestamp,
-                                                        "params": {
-                                                            "line_color": self.whiteboard.get_config(["active_color"]),
-                                                            "start_pos": self.whiteboard.get_last_pos(),
-                                                            "end_pos": self.whiteboard.get_mouse_position(),
-                                                            "font_size": self.whiteboard.get_config(["font_size"])},
-                                                        "client": client})
-            self.whiteboard.set_last_pos(self.whiteboard.get_mouse_position())
+                self.whiteboard.draw(to_draw, timestamp, client)
+            self.whiteboard.update_last_pos()
 
     def handle_mouse_button_up(self):
-        self.whiteboard.set_mouse_position((0, 0))
-        self.whiteboard.set_draw(False)
-        self.whiteboard.set_last_pos(None)
+        self.whiteboard.mouse_position = (0, 0)
+        self.whiteboard.pen_up()
+        self.whiteboard.reset_last_pos()
 
     def handle_mouse_button_down(self):
-        self.whiteboard.set_draw(True)
+        self.whiteboard.pen_down()
 
     def handle_all(self, event):
         handled = self.handle(event)
@@ -152,23 +139,7 @@ class HandleText(EventHandler):
             self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
-            self.whiteboard.add_to_hist("actions", {"type": "Text_box", "timestamp": timestamp,
-                                                    "id": text_box.id_counter,
-                                                    "params": {"x": coord[0], "y": coord[1],
-                                                               "w": self.whiteboard.get_config(
-                                                                   ["text_box", "textbox_width"]),
-                                                               "h": self.whiteboard.get_config(
-                                                                   ["text_box", "textbox_length"]),
-                                                               "box_color": self.whiteboard.get_config(
-                                                                   ["text_box", "active_color"]),
-                                                               "font": self.whiteboard.get_config(["text_box", "font"]),
-                                                               "font_size": self.whiteboard.get_config(
-                                                                   ["text_box", "font_size"]),
-                                                               "text": "",
-                                                               "text_color": self.whiteboard.get_config(
-                                                                   ["active_color"])},
-                                                    "client": client})
-            text_box.draw(self.whiteboard.get_screen())
+            self.whiteboard.draw(text_box, timestamp, client)
             if self.whiteboard.active_box is not None:
                 self.whiteboard.active_box.set_textbox_color(self.whiteboard.get_config(["text_box", "inactive_color"]))
                 id_counter = self.whiteboard.active_box.id_counter
@@ -189,7 +160,7 @@ class HandleText(EventHandler):
                         if action['id'] == id_counter:
                             action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                             action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
-                    self.whiteboard.active_box.draw(self.whiteboard.get_screen())
+                    self.whiteboard.active_box.draw(self.whiteboard.screen)
                     self.whiteboard.active_box = box
                     self.whiteboard.active_box.set_textbox_color(
                         self.whiteboard.get_config(["text_box", "active_color"]))
@@ -197,7 +168,7 @@ class HandleText(EventHandler):
                     for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                         if action['id'] == id_counter:
                             action['params']["box_color"] = self.whiteboard.get_config(["text_box", "active_color"])
-                    box.draw(self.whiteboard.get_screen())
+                    box.draw(self.whiteboard.screen)
 
     def write_in_box(self, event):
         if self.whiteboard.active_box is not None:
