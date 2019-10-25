@@ -35,10 +35,11 @@ def binary_to_dict(the_binary):
 
 
 class WhiteBoard:
-    def __init__(self, start_hist=None):
+    def __init__(self, name, start_hist=None):
         pygame.init()
         self._done = False
         self._config = start_config
+        self._name=name
         if start_hist is None:
             start_hist = {"actions": []}
         self._hist = start_hist
@@ -196,9 +197,9 @@ class WhiteBoard:
     def append_text_box(self, textbox):
         self._text_boxes.append(textbox)
 
-    def draw(self, obj, timestamp, client):
+    def draw(self, obj, timestamp):
         obj.draw(self.__screen)
-        hist_obj = {"type": obj.type, "timestamp": timestamp, "params": obj.fetch_params(), "client": client}
+        hist_obj = {"type": obj.type, "timestamp": timestamp, "params": obj.fetch_params(), "client": self._name}
         if hist_obj["type"] == "Text_box":
             hist_obj["id"] = obj.id_counter
         self.add_to_hist(hist_obj)
@@ -252,8 +253,9 @@ class WhiteBoard:
             new_last_timestamp=last_timestamp
             for action in new_hist["actions"]:
                 if action["timestamp"] > last_timestamp:
-                    self.add_to_hist(action)
-                    print('UPDATE')
+                    if action["client"] != self._name:
+                        self.add_to_hist(action)
+                        print('UPDATE')
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp=action["timestamp"]
             last_timestamp=new_last_timestamp
@@ -273,7 +275,7 @@ print("Connexion réussie avec le serveur")
 msg_recu = connexion_avec_serveur.recv(2 ** 24)
 msg_decode = binary_to_dict(msg_recu)
 hist = msg_decode
-whiteboard = WhiteBoard(hist)
+whiteboard = WhiteBoard("client1", hist)
 whiteboard.start()
 
 

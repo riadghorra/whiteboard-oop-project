@@ -20,10 +20,11 @@ Adresse client connecté au serveur
 
 
 class WhiteBoard:
-    def __init__(self, start_hist=None):
+    def __init__(self, name, start_hist=None):
         pygame.init()
         self._done = False
         self._config = start_config
+        self._name=name
         if start_hist is None:
             start_hist = {"actions": []}
         self._hist = start_hist
@@ -181,9 +182,9 @@ class WhiteBoard:
     def append_text_box(self, textbox):
         self._text_boxes.append(textbox)
 
-    def draw(self, obj, timestamp, client):
+    def draw(self, obj, timestamp):
         obj.draw(self.__screen)
-        hist_obj = {"type": obj.type, "timestamp": timestamp, "params": obj.fetch_params(), "client": client}
+        hist_obj = {"type": obj.type, "timestamp": timestamp, "params": obj.fetch_params(), "client": self._name}
         if hist_obj["type"] == "Text_box":
             hist_obj["id"] = obj.id_counter
         self.add_to_hist(hist_obj)

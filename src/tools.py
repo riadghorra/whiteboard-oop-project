@@ -81,7 +81,7 @@ class HandlePoint(EventHandler):
                             self.whiteboard.get_config(["font_size"]))
             now = datetime.now()
             timestamp = datetime.timestamp(now)
-            self.whiteboard.draw(to_draw, timestamp, client)
+            self.whiteboard.draw(to_draw, timestamp)
 
 
 class HandleLine(EventHandler):
@@ -99,7 +99,7 @@ class HandleLine(EventHandler):
                                self.whiteboard.get_config(["font_size"]))
                 now = datetime.now()
                 timestamp = datetime.timestamp(now)
-                self.whiteboard.draw(to_draw, timestamp, client)
+                self.whiteboard.draw(to_draw, timestamp)
             self.whiteboard.update_last_pos()
 
     def handle_mouse_button_up(self):
@@ -139,7 +139,7 @@ class HandleText(EventHandler):
             self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
-            self.whiteboard.draw(text_box, timestamp, client)
+            self.whiteboard.draw(text_box, timestamp)
             if self.whiteboard.active_box is not None:
                 self.whiteboard.active_box.set_textbox_color(self.whiteboard.get_config(["text_box", "inactive_color"]))
                 id_counter = self.whiteboard.active_box.id_counter

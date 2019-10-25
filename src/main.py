@@ -2,7 +2,7 @@ from white_board import WhiteBoard
 
 
 def main():
-    board = WhiteBoard()
+    board = WhiteBoard("client")
     board.start()
 
 
