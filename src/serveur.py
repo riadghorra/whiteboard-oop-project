@@ -5,6 +5,7 @@ import json
 import initial_drawing
 
 clients = []
+threadlaunched=[]
 historique = initial_drawing.drawing2
 
 def dict_to_binary(the_dict):
@@ -54,9 +55,14 @@ def main():
         new_thread = Client()
         new_thread.setclient(client)
         clients.append(new_thread)
-        new_thread.start()
-        new_thread.join()
-    print('truc')
+        for thread in clients:
+            thread.start()
+            clients.remove(thread)
+            threadlaunched.append(thread)
+        for thread in threadlaunched:
+            if thread.done:
+                thread.join()
+                threadlaunched.remove(thread)
 
 
 if __name__ == '__main__':

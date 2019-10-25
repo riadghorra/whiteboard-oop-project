@@ -244,15 +244,16 @@ class WhiteBoard:
                 self.__handler[self.get_config(["mode"])].handle_all(event)
             msg_a_envoyer = self.get_hist()
             msg_a_envoyer["message"] = "CARRY ON"
-            print(msg_a_envoyer)
+            #print(msg_a_envoyer)
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
-            print("hist envoyé")
+            #print("hist envoyé")
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
             new_hist = binary_to_dict(msg_recu)
             new_last_timestamp=last_timestamp
             for action in new_hist["actions"]:
                 if action["timestamp"] > last_timestamp:
                     self.add_to_hist(action)
+                    print('UPDATE')
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp=action["timestamp"]
             last_timestamp=new_last_timestamp
