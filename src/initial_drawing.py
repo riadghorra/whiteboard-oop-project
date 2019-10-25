@@ -2240,3 +2240,15 @@ drawing = {"message": "", 'actions': [{'type': 'Point', 'timestamp': 1571747340.
                                                      'font': 'timesnewroman', 'font_size': 20,
                                                      'text': 'I am Mr Potato! <3', 'text_color': [0, 0, 0]},
                                           'client': 'client'}]}
+
+
+drawing2 = {"message": "", 'actions': [{'type': 'Point', 'timestamp': 1571747340.659661,
+                                          'params': {'coord': (406, 185), 'clicktype': 1, 'point_color': [0, 0, 255],
+                                                     'font_size': 12}, 'client': 'client'},
+                                         {'type': 'Point', 'timestamp': 1571747346.41509,
+                                          'params': {'coord': (227, 176), 'clicktype': 1, 'point_color': [0, 255, 0],
+                                                     'font_size': 12}, 'client': 'client'},{'type': 'Text_box', 'timestamp': 1571747376.62156, 'id': 1,
+                                          'params': {'x': 208, 'y': 438, 'w': 160, 'h': 32, 'box_color': [30, 30, 30],
+                                                     'font': 'timesnewroman', 'font_size': 20,
+                                                     'text': 'I am Mr Potato! <3', 'text_color': [0, 0, 0]},
+                                          'client': 'client'}]}

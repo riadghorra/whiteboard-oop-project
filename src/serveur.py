@@ -5,7 +5,7 @@ import json
 import initial_drawing
 
 clients = []
-historique = initial_drawing.drawing
+historique = initial_drawing.drawing2
 
 def dict_to_binary(the_dict):
     str = json.dumps(the_dict)
@@ -27,11 +27,15 @@ class Client(Thread):
     def run(self):
         while not self.done:
             msg_recu = self.nom.recv(2 ** 24)
-            historique = msg_recu.decode()
+            historique = binary_to_dict(msg_recu)
+            print(historique)
+            print('hist bien recu')
             if historique["message"] == "END":
                 done = True
+                print("Déconnexion d'un client")
                 historique["message"] = "end"
             self.nom.send(dict_to_binary(historique))
+            print('dico send')
 
     def setclient(self, c):
         self.nom = c
