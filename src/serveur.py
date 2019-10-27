@@ -26,17 +26,24 @@ class Client(Thread):
         self.done = False
 
     def run(self):
+        last_timestamp=0
+        new_last_timestamp = 0
         while not self.done:
             msg_recu = self.nom.recv(2 ** 24)
-            historique = binary_to_dict(msg_recu)
-            print(historique)
-            print('hist bien recu')
+            new_hist = binary_to_dict(msg_recu)
+            for action in new_hist["actions"]:
+                if action["timestamp"] > last_timestamp:
+                    if action["client"] != self._name:
+                        historique["actions"].append(action)
+                        print('UPDATE')
+                    if action["timestamp"] > new_last_timestamp:
+                        new_last_timestamp = action["timestamp"]
+            last_timestamp = new_last_timestamp
             if historique["message"] == "END":
                 done = True
                 print("Déconnexion d'un client")
                 historique["message"] = "end"
             self.nom.send(dict_to_binary(historique))
-            print('dico send')
 
     def setclient(self, c):
         self.nom = c

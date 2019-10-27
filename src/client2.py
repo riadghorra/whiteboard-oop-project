@@ -232,7 +232,6 @@ class WhiteBoard:
         pygame.display.flip()
 
     def start(self):
-        print("bla")
         last_timestamp=0
         for action in hist["actions"]:
             if action["timestamp"] > last_timestamp:
@@ -253,10 +252,17 @@ class WhiteBoard:
             new_last_timestamp=last_timestamp
             for action in new_hist["actions"]:
                 if action["timestamp"] > last_timestamp:
-                    self.add_to_hist(action)
-                    print('UPDATE')
+                    if action["client"] != self._name:
+                        self.add_to_hist(action)
+                        if action["type"] == "Point":
+                            draw_point(action["params"], self.__screen)
+                        if action["type"] == "Line":
+                            draw_line(action["params"], self.__screen)
+                        if action["type"] == "Text_box":
+                            draw_textbox(action["params"], self.__screen)
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp=action["timestamp"]
+            pygame.display.flip()
             last_timestamp=new_last_timestamp
 
         pygame.quit()
