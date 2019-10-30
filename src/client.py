@@ -95,14 +95,12 @@ class WhiteBoard:
         Initialisation des paramètres des text boxes
         """
         self._text_boxes = []
-        for action in self._hist["actions"]:
-            if action["type"] == "Text_box":
-                self._text_boxes.append(TextBox(**action["params"]))
 
 
         self.active_box = None
 
         self.load_actions(self._hist)
+        print('bla')
 
     """
     Encapsulation
@@ -228,14 +226,16 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.__screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.__screen)
+                tb = TextBox(**action["params"])
+                tb.draw(self.__screen)
+                self._text_boxes.append(tb)
         pygame.display.flip()
 
     def start(self):
         last_timestamp=0
-        for action in hist["actions"]:
+        for action in self._hist["actions"]:
             if action["timestamp"] > last_timestamp:
-                last_timestamp=action["timestamp"]
+                last_timestamp = action["timestamp"]
         while not self.is_done():
             for event in pygame.event.get():
                 if self.get_config(["mode"]) == "quit":
@@ -244,9 +244,7 @@ class WhiteBoard:
                 self.__handler[self.get_config(["mode"])].handle_all(event)
             msg_a_envoyer = self.get_hist()
             msg_a_envoyer["message"] = "CARRY ON"
-            #print(msg_a_envoyer)
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
-            #print("hist envoyé")
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
             new_hist = binary_to_dict(msg_recu)
             new_last_timestamp=last_timestamp
@@ -259,7 +257,7 @@ class WhiteBoard:
                         if action["type"] == "Line":
                             draw_line(action["params"], self.__screen)
                         if action["type"] == "Text_box":
-                            draw_textbox(action["params"], self.__screen)
+                            draw_textbox(action["id"], self.__screen, self._text_boxes)
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp=action["timestamp"]
             pygame.display.flip()
@@ -268,6 +266,7 @@ class WhiteBoard:
         pygame.quit()
         print("Fermeture de la connexion")
         msg_a_envoyer["message"] = "END"
+        print(whiteboard._hist)
         connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
         connexion_avec_serveur.close()
 

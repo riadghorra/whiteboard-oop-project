@@ -1,6 +1,6 @@
 import pygame
 import pygame.draw
-from figures import Point, Line, TextBox
+from figures import Point, Line, TextBox, draw_textbox
 from datetime import datetime
 
 client = "client"
@@ -136,6 +136,8 @@ class HandleText(EventHandler):
                                self.whiteboard.get_config(["text_box", "font"]),
                                self.whiteboard.get_config(["text_box", "font_size"]), "",
                                self.whiteboard.get_config(["active_color"]))
+            print('text box crée')
+            self.whiteboard._text_boxes.append(text_box)
             self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
@@ -147,7 +149,10 @@ class HandleText(EventHandler):
                     if action['id'] == id_counter:
                         action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
                         action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
-                        self.whiteboard.load_actions(self.whiteboard.get_hist())
+                        print('la')
+                        print(self.whiteboard.__screen)
+                        draw_textbox(action["id"], self.whiteboard.__screen, self.whiteboard._text_boxes)
+                        print('ici')
             self.whiteboard.active_box = text_box
         elif event.dict["button"] == 1:
             for box in self.whiteboard.get_text_boxes():
@@ -178,6 +183,9 @@ class HandleText(EventHandler):
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
                         action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
+                        now=datetime.now()
+                        timestamp = datetime.timestamp(now)
+                        action['timestamp'] = timestamp
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
             elif event.key == pygame.K_TAB or event.key == pygame.K_RETURN:
@@ -188,6 +196,9 @@ class HandleText(EventHandler):
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
                         action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
+                        now = datetime.now()
+                        timestamp = datetime.timestamp(now)
+                        action['timestamp'] = timestamp
                 self.whiteboard.active_box.update(self.whiteboard.get_hist())
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())

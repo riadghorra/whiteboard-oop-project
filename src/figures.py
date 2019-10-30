@@ -54,6 +54,7 @@ class TextBox:
         self.id_counter = TextBox.id_counter
         self.type = "Text_box"
         TextBox.id_counter += 1
+        print('hi l id counter se met a jour',self.id_counter, TextBox.id_counter)
 
     """
     Encapsulation
@@ -109,5 +110,8 @@ def draw_point(params, screen):
 def draw_line(params, screen):
     return Line(**params).draw(screen)
 
-def draw_textbox(params, screen):
-    return TextBox(**params).draw(screen)
+def draw_textbox(id, screen, text_boxes):
+    for tb in text_boxes:
+        if tb.id_counter == id:
+            return tb.draw(screen)
+    #return TextBox(**params).draw(screen)

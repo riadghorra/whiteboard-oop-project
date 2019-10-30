@@ -79,7 +79,7 @@ class WhiteBoard:
         """
         Initialisation des paramètres des text boxes
         """
-        self._text_boxes = []
+        self._text_boxes = [] #Tchequer si c'est utile
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
                 self._text_boxes.append(TextBox(**action["params"]))
@@ -213,7 +213,7 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.__screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.__screen)
+                draw_textbox(action["id"], self.__screen, self._text_boxes)
         pygame.display.flip()
 
     def start(self):

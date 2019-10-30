@@ -33,16 +33,19 @@ class Client(Thread):
             new_hist = binary_to_dict(msg_recu)
             for action in new_hist["actions"]:
                 if action["timestamp"] > last_timestamp:
-                    if action["client"] != self._name:
+                    if action["client"] != self.nom:
                         historique["actions"].append(action)
                         print('UPDATE')
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp = action["timestamp"]
+                if action["type"] == "Text_box":
+                    pass
             last_timestamp = new_last_timestamp
             if historique["message"] == "END":
                 done = True
                 print("Déconnexion d'un client")
                 historique["message"] = "end"
+                print(historique)
             self.nom.send(dict_to_binary(historique))
 
     def setclient(self, c):

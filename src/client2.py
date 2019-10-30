@@ -228,12 +228,13 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.__screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["params"], self.__screen)
+                draw_textbox(action["id"], self.__screen, self._text_boxes)
+                self._text_boxes.append(TextBox(**action["params"]))
         pygame.display.flip()
 
     def start(self):
         last_timestamp=0
-        for action in hist["actions"]:
+        for action in self._hist["actions"]:
             if action["timestamp"] > last_timestamp:
                 last_timestamp=action["timestamp"]
         while not self.is_done():
@@ -259,7 +260,7 @@ class WhiteBoard:
                         if action["type"] == "Line":
                             draw_line(action["params"], self.__screen)
                         if action["type"] == "Text_box":
-                            draw_textbox(action["params"], self.__screen)
+                            draw_textbox(action["id"], self.__screen, self._text_boxes)
                     if action["timestamp"] > new_last_timestamp:
                         new_last_timestamp=action["timestamp"]
             pygame.display.flip()
