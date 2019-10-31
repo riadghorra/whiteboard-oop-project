@@ -42,7 +42,7 @@ class Client(Thread):
                     pass
             last_timestamp = new_last_timestamp
             if historique["message"] == "END":
-                done = True
+                self.done = True
                 print("Déconnexion d'un client")
                 historique["message"] = "end"
                 print(historique)

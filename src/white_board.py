@@ -3,24 +3,27 @@ import pygame.draw
 import json
 from functools import reduce
 import operator
-
-from figures import Point, Line, TextBox, draw_line, draw_point, draw_textbox
-from tools import Mode, ColorBox, FontSizeBox, EventHandler, HandlePoint, HandleLine, HandleText
+from figures import TextBox, draw_line, draw_point, draw_textbox
+from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText
 
 '''
 Ouverture de la configuration initiale
 '''
 
-with open('config.json') as json_file:
-    start_config = json.load(json_file)
+def dict_to_binary(the_dict):
+    str = json.dumps(the_dict)
+    return bytes(str, 'utf-8')
 
-"""
-Adresse client connecté au serveur
-"""
+
+def binary_to_dict(the_binary):
+    jsn = ''.join(the_binary.decode("utf-8"))
+    d = json.loads(jsn)
+    return d
+
 
 
 class WhiteBoard:
-    def __init__(self, name, start_hist=None):
+    def __init__(self, name, start_config, start_hist=None):
         pygame.init()
         self._done = False
         self._config = start_config
@@ -79,15 +82,13 @@ class WhiteBoard:
         """
         Initialisation des paramètres des text boxes
         """
-        self._text_boxes = [] #Tchequer si c'est utile
-        for action in self._hist["actions"]:
-            if action["type"] == "Text_box":
-                self._text_boxes.append(TextBox(**action["params"]))
+        self._text_boxes = []
 
 
         self.active_box = None
 
         self.load_actions(self._hist)
+        print('bla')
 
     """
     Encapsulation
@@ -213,14 +214,45 @@ class WhiteBoard:
             if action["type"] == "Line":
                 draw_line(action["params"], self.__screen)
             if action["type"] == "Text_box":
-                draw_textbox(action["id"], self.__screen, self._text_boxes)
+                tb = TextBox(**action["params"])
+                tb.draw(self.__screen)
+                self._text_boxes.append(tb)
         pygame.display.flip()
 
-    def start(self):
+    def start(self, connexion_avec_serveur):
+        last_timestamp=0
+        for action in self._hist["actions"]:
+            if action["timestamp"] > last_timestamp:
+                last_timestamp = action["timestamp"]
         while not self.is_done():
             for event in pygame.event.get():
                 if self.get_config(["mode"]) == "quit":
                     self.end()
                     break
                 self.__handler[self.get_config(["mode"])].handle_all(event)
+            msg_a_envoyer = self.get_hist()
+            msg_a_envoyer["message"] = "CARRY ON"
+            connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
+            msg_recu = connexion_avec_serveur.recv(2 ** 24)
+            new_hist = binary_to_dict(msg_recu)
+            new_last_timestamp=last_timestamp
+            for action in new_hist["actions"]:
+                if action["timestamp"] > last_timestamp:
+                    if action["client"] != self._name:
+                        self.add_to_hist(action)
+                        if action["type"] == "Point":
+                            draw_point(action["params"], self.__screen)
+                        if action["type"] == "Line":
+                            draw_line(action["params"], self.__screen)
+                        if action["type"] == "Text_box":
+                            draw_textbox(action["id"], self.__screen, self._text_boxes)
+                    if action["timestamp"] > new_last_timestamp:
+                        new_last_timestamp=action["timestamp"]
+            pygame.display.flip()
+            last_timestamp=new_last_timestamp
+
         pygame.quit()
+        print("Fermeture de la connexion")
+        msg_a_envoyer["message"] = "END"
+        connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
+        connexion_avec_serveur.close()
