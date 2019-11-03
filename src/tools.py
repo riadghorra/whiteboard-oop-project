@@ -142,12 +142,11 @@ class HandleText(EventHandler):
             timestamp = datetime.timestamp(now)
             self.whiteboard.draw(text_box, timestamp)
             self.whiteboard.set_active_box(text_box)
-            
+
         elif event.dict["button"] == 1:
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
-                    self.whiteboard.set_active_box(box, new = False)
-                    
+                    self.whiteboard.set_active_box(box, new=False)
 
     def write_in_box(self, event):
         if self.whiteboard.active_box is not None:
@@ -157,7 +156,7 @@ class HandleText(EventHandler):
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
                         action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
-                        now=datetime.now()
+                        now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
                 self.whiteboard.clear_screen()

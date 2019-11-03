@@ -236,7 +236,7 @@ class WhiteBoard:
             if action["type"] == "Text_box":
                 tb = TextBox(**action["params"])
                 tb.draw(self.__screen)
-                self._text_boxes.append(tb)
+                # self._text_boxes.append(tb)
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):
