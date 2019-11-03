@@ -40,7 +40,6 @@ class Line:
 
 
 class TextBox:
-    id_counter = 0
 
     def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
         self.__rect = pygame.Rect(x, y, w, h)
@@ -51,10 +50,8 @@ class TextBox:
         self._sysfont = pygame.font.SysFont(font, font_size)
         self._text_color = text_color
         self._txt_surface = self._sysfont.render(text, True, self._text_color)
-        self.id_counter = TextBox.id_counter
+        self.id_counter = str(x) + "_" + str(y)
         self.type = "Text_box"
-        TextBox.id_counter += 1
-        print('hi l id counter se met a jour',self.id_counter, TextBox.id_counter)
 
     """
     Encapsulation
@@ -104,14 +101,20 @@ class TextBox:
         # Blit the rect.
         pygame.draw.rect(screen, self._color, self.__rect, 2)
 
+
 def draw_point(params, screen):
     return Point(**params).draw(screen)
+
 
 def draw_line(params, screen):
     return Line(**params).draw(screen)
 
-def draw_textbox(id, screen, text_boxes):
-    for tb in text_boxes:
-        if tb.id_counter == id:
-            return tb.draw(screen)
-    #return TextBox(**params).draw(screen)
+
+# def draw_textbox(id, screen, text_boxes):
+#     for tb in text_boxes:
+#         if tb.id_counter == id:
+#             return tb.draw(screen)
+#     #return TextBox(**params).draw(screen)
+
+def draw_textbox(params, screen):
+    return TextBox(**params).draw(screen)

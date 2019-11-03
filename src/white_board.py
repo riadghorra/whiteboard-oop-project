@@ -10,6 +10,7 @@ from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleTe
 Ouverture de la configuration initiale
 '''
 
+
 def dict_to_binary(the_dict):
     str = json.dumps(the_dict)
     return bytes(str, 'utf-8')
@@ -21,13 +22,12 @@ def binary_to_dict(the_binary):
     return d
 
 
-
 class WhiteBoard:
     def __init__(self, name, start_config, start_hist=None):
         pygame.init()
         self._done = False
         self._config = start_config
-        self._name=name
+        self._name = name
         if start_hist is None:
             start_hist = {"actions": []}
         self._hist = start_hist
@@ -83,7 +83,6 @@ class WhiteBoard:
         Initialisation des paramètres des text boxes
         """
         self._text_boxes = []
-
 
         self.active_box = None
 
@@ -204,8 +203,8 @@ class WhiteBoard:
             for font_size_ in self.__font_sizes:
                 if font_size_.is_triggered(event):
                     self.set_config(["font_size"], font_size_.font_size)
-                    
-    def set_active_box(self, box, new = True):
+
+    def set_active_box(self, box, new=True):
         if box == self.active_box:
             return
         if self.active_box is not None:
@@ -213,19 +212,19 @@ class WhiteBoard:
             id_counter = self.active_box.id_counter
             for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
                 if action['id'] == id_counter:
-                    action['params']["text"] = self.active_box.get_textbox_text()
+                    action["params"]["text"] = self.active_box.get_textbox_text()
                     action['params']["box_color"] = self.get_config(["text_box", "inactive_color"])
             self.active_box.draw(self.__screen)
-                    
-        if new == False :
+
+        if not new:
             id_counter = box.id_counter
             for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
                 if action['id'] == id_counter:
-                    action['params']["box_color"] = self.whiteboard.get_config(["text_box", "active_color"])
+                    action['params']["box_color"] = self.get_config(["text_box", "active_color"])
         self.active_box = box
         self.active_box.draw(self.__screen)
         pygame.display.flip()
-        
+
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
                       key=lambda value: value["timestamp"])
@@ -241,7 +240,7 @@ class WhiteBoard:
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):
-        last_timestamp=0
+        last_timestamp = 0
         for action in self._hist["actions"]:
             if action["timestamp"] > last_timestamp:
                 last_timestamp = action["timestamp"]
@@ -256,8 +255,9 @@ class WhiteBoard:
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
             new_hist = binary_to_dict(msg_recu)
-            new_last_timestamp=last_timestamp
-            new_actions = [action for action in new_hist["actions"] if (action["timestamp"] > last_timestamp and action["client"] != self._name)]
+            new_last_timestamp = last_timestamp
+            new_actions = [action for action in new_hist["actions"] if
+                           (action["timestamp"] > last_timestamp and action["client"] != self._name)]
             for action in new_actions:
                 self.add_to_hist(action)
                 if action["type"] == "Point":
@@ -265,14 +265,24 @@ class WhiteBoard:
                 if action["type"] == "Line":
                     draw_line(action["params"], self.__screen)
                 if action["type"] == "Text_box":
-                    draw_textbox(action["id"], self.__screen, self._text_boxes)
+                    draw_textbox(action["params"], self.__screen)
                 if action["timestamp"] > new_last_timestamp:
-                    new_last_timestamp=action["timestamp"]
+                    new_last_timestamp = action["timestamp"]
             pygame.display.flip()
-            last_timestamp=new_last_timestamp
+            last_timestamp = new_last_timestamp
 
         pygame.quit()
         print("Fermeture de la connexion")
         msg_a_envoyer["message"] = "END"
         connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
         connexion_avec_serveur.close()
+
+    def start_local(self):
+        while not self.is_done():
+            for event in pygame.event.get():
+                if self.get_config(["mode"]) == "quit":
+                    self.end()
+                    break
+                self.__handler[self.get_config(["mode"])].handle_all(event)
+            pygame.display.flip()
+        pygame.quit()
