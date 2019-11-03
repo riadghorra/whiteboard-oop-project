@@ -204,7 +204,28 @@ class WhiteBoard:
             for font_size_ in self.__font_sizes:
                 if font_size_.is_triggered(event):
                     self.set_config(["font_size"], font_size_.font_size)
-
+                    
+    def set_active_box(self, box, new = True):
+        if box == self.active_box:
+            return
+        if self.active_box is not None:
+            self.active_box.set_textbox_color(self.get_config(["text_box", "inactive_color"]))
+            id_counter = self.active_box.id_counter
+            for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
+                if action['id'] == id_counter:
+                    action['params']["text"] = self.active_box.get_textbox_text()
+                    action['params']["box_color"] = self.get_config(["text_box", "inactive_color"])
+            self.active_box.draw(self.__screen)
+                    
+        if new == False :
+            id_counter = box.id_counter
+            for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
+                if action['id'] == id_counter:
+                    action['params']["box_color"] = self.whiteboard.get_config(["text_box", "active_color"])
+        self.active_box = box
+        self.active_box.draw(self.__screen)
+        pygame.display.flip()
+        
     def load_actions(self, hist):
         sred = sorted(hist["actions"],
                       key=lambda value: value["timestamp"])
@@ -236,18 +257,17 @@ class WhiteBoard:
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
             new_hist = binary_to_dict(msg_recu)
             new_last_timestamp=last_timestamp
-            for action in new_hist["actions"]:
-                if action["timestamp"] > last_timestamp:
-                    if action["client"] != self._name:
-                        self.add_to_hist(action)
-                        if action["type"] == "Point":
-                            draw_point(action["params"], self.__screen)
-                        if action["type"] == "Line":
-                            draw_line(action["params"], self.__screen)
-                        if action["type"] == "Text_box":
-                            draw_textbox(action["id"], self.__screen, self._text_boxes)
-                    if action["timestamp"] > new_last_timestamp:
-                        new_last_timestamp=action["timestamp"]
+            new_actions = [action for action in new_hist["actions"] if (action["timestamp"] > last_timestamp and action["client"] != self._name)]
+            for action in new_actions:
+                self.add_to_hist(action)
+                if action["type"] == "Point":
+                    draw_point(action["params"], self.__screen)
+                if action["type"] == "Line":
+                    draw_line(action["params"], self.__screen)
+                if action["type"] == "Text_box":
+                    draw_textbox(action["id"], self.__screen, self._text_boxes)
+                if action["timestamp"] > new_last_timestamp:
+                    new_last_timestamp=action["timestamp"]
             pygame.display.flip()
             last_timestamp=new_last_timestamp
 

@@ -137,43 +137,17 @@ class HandleText(EventHandler):
                                self.whiteboard.get_config(["text_box", "font_size"]), "",
                                self.whiteboard.get_config(["active_color"]))
             print('text box crée')
-            self.whiteboard._text_boxes.append(text_box)
             self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
             self.whiteboard.draw(text_box, timestamp)
-            if self.whiteboard.active_box is not None:
-                self.whiteboard.active_box.set_textbox_color(self.whiteboard.get_config(["text_box", "inactive_color"]))
-                id_counter = self.whiteboard.active_box.id_counter
-                for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
-                    if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
-                        action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
-                        print('la')
-                        print(self.whiteboard.__screen)
-                        draw_textbox(action["id"], self.whiteboard.__screen, self.whiteboard._text_boxes)
-                        print('ici')
-            self.whiteboard.active_box = text_box
+            self.whiteboard.set_active_box(text_box)
+            
         elif event.dict["button"] == 1:
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
-                    if self.whiteboard.active_box is not None:
-                        self.whiteboard.active_box.set_textbox_color(
-                            self.whiteboard.get_config(["text_box", "inactive_color"]))
-                    id_counter = self.whiteboard.active_box.id_counter
-                    for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
-                        if action['id'] == id_counter:
-                            action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
-                            action['params']["box_color"] = self.whiteboard.get_config(["text_box", "inactive_color"])
-                    self.whiteboard.active_box.draw(self.whiteboard.screen)
-                    self.whiteboard.active_box = box
-                    self.whiteboard.active_box.set_textbox_color(
-                        self.whiteboard.get_config(["text_box", "active_color"]))
-                    id_counter = self.whiteboard.active_box.id_counter
-                    for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
-                        if action['id'] == id_counter:
-                            action['params']["box_color"] = self.whiteboard.get_config(["text_box", "active_color"])
-                    box.draw(self.whiteboard.screen)
+                    self.whiteboard.set_active_box(box, new = False)
+                    
 
     def write_in_box(self, event):
         if self.whiteboard.active_box is not None:
