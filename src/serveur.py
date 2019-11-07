@@ -28,25 +28,27 @@ class Client(Thread):
     def run(self):
         last_timestamp=0
         new_last_timestamp = 0
-        while not self.done:
-            msg_recu = self.nom.recv(2 ** 24)
-            new_hist = binary_to_dict(msg_recu)
-            for action in new_hist["actions"]:
-                if action["timestamp"] > last_timestamp:
-                    if action["client"] != self.nom:
-                        historique["actions"].append(action)
-                        print('UPDATE')
-                    if action["timestamp"] > new_last_timestamp:
-                        new_last_timestamp = action["timestamp"]
-                if action["type"] == "Text_box":
-                    pass
-            last_timestamp = new_last_timestamp
-            if historique["message"] == "END":
-                self.done = True
-                print("Déconnexion d'un client")
-                historique["message"] = "end"
-                print(historique)
-            self.nom.send(dict_to_binary(historique))
+        try:
+            while not self.done:
+                msg_recu = self.nom.recv(2 ** 24)
+                new_hist = binary_to_dict(msg_recu)
+                for action in new_hist["actions"]:
+                    if action["timestamp"] > last_timestamp:
+                        if action["client"] != self.nom:
+                            historique["actions"].append(action)
+                        if action["timestamp"] > new_last_timestamp:
+                            new_last_timestamp = action["timestamp"]
+                    if action["type"] == "Text_box":
+                        pass
+                last_timestamp = new_last_timestamp
+                if historique["message"] == "END":
+                    self.done = True
+                    print("Déconnexion d'un client")
+                    historique["message"] = "end"
+                    print(historique)
+                self.nom.send(dict_to_binary(historique))
+        except ConnectionAbortedError:
+            print("Un client s'est déconnecté")
 
     def setclient(self, c):
         self.nom = c
