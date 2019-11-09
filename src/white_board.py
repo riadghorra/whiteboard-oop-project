@@ -3,8 +3,8 @@ import pygame.draw
 import json
 from functools import reduce
 import operator
-from figures import TextBox, draw_line, draw_point, draw_textbox
-from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText
+from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect
+from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect
 
 '''
 Ouverture de la configuration initiale
@@ -36,13 +36,15 @@ class WhiteBoard:
         self.__handler = {"line": HandleLine(self),
                           "point": HandlePoint(self),
                           "text": HandleText(self),
-                          }
+                          "rect" : HandleRect(self)}
+        
         pygame.draw.line(self.__screen, self._config["active_color"], [0, self._config["toolbar_y"]],
                          [self._config["width"], self._config["toolbar_y"]], 1)
 
         self.__modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
                         Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+                        Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
         for mod in self.__modes:
             mod.add(self.__screen)
@@ -70,7 +72,7 @@ class WhiteBoard:
             box_counter += 1
             self.__font_sizes.append(font_size_box)
             font_size_box.add(self.__screen)
-
+        
         """
         initialisation des variables de dessin
         """
@@ -87,12 +89,11 @@ class WhiteBoard:
         self.active_box = None
 
         self.load_actions(self._hist)
-        print('bla')
-
+        
     """
     Encapsulation
     """
-
+    
     def is_done(self):
         return self._done
 
@@ -195,7 +196,10 @@ class WhiteBoard:
         else:
             for mod in self.__modes:
                 if mod.is_triggered(event):
+                    print(mod.name)
                     self.set_config(["mode"], mod.name)
+                    print(self.get_config(["mode"]))
+                    print(self.__handler[self.get_config(["mode"])])
             for col in self.__colors:
                 if col.is_triggered(event):
                     self.set_config(["text_box", "text_color"], col.color)
@@ -236,7 +240,8 @@ class WhiteBoard:
             if action["type"] == "Text_box":
                 tb = TextBox(**action["params"])
                 tb.draw(self.__screen)
-                # self._text_boxes.append(tb)
+            if action["type"] == "rect":
+                draw_rect(action["params"], self.__screen)
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):

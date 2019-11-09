@@ -3,6 +3,7 @@ from threading import Thread
 from datetime import datetime
 import json
 import initial_drawing
+from time import sleep
 
 clients = []
 threadlaunched=[]

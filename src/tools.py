@@ -1,6 +1,6 @@
 import pygame
 import pygame.draw
-from figures import Point, Line, TextBox, draw_textbox
+from figures import Point, Line, TextBox, draw_textbox, Rectangle
 from datetime import datetime
 
 client = "client"
@@ -13,7 +13,6 @@ class TriggerBox:
 
     def is_triggered(self, event):
         return self.rect.collidepoint(event.pos)
-
 
 class Mode(TriggerBox):
     def __init__(self, name, top_left, size):
@@ -191,3 +190,32 @@ class HandleText(EventHandler):
         if event.type == pygame.KEYDOWN:
             self.write_in_box(event)
         pygame.display.flip()
+
+class HandleRect(EventHandler):
+    def __init__(self, whiteboard):
+        EventHandler.__init__(self, whiteboard)
+        self.c1 = None
+        
+    def handle_mouse_button_up(self, coord):
+        if self.c1 is not None :
+            coord = list(coord)
+            coord[1] = max(self.whiteboard.get_config(["toolbar_y"]), coord[1])
+            to_draw = Rectangle(self.c1, coord, self.whiteboard.get_config(["active_color"]))
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            self.whiteboard.draw(to_draw, timestamp)
+            self.c1 = None
+
+    def handle_mouse_button_down(self, coord):
+        self.c1 = coord
+
+    def handle_all(self, event):
+        handled = self.handle(event)
+        if handled:
+            return
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.handle_mouse_button_up(coord = event.dict['pos'])
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.handle_mouse_button_down(coord = event.dict['pos'])
+        pygame.display.flip()
+    
