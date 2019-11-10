@@ -268,7 +268,7 @@ class WhiteBoard:
                 if action["type"] == "Text_box": 
                     for textbox in [x for x in self._hist["actions"] if x["type"]== "Text_box"]:
                         if action["id"] == textbox["id"]:
-                            textbox = action
+                            textbox["params"] = action["params"]
                             self.load_actions(self._hist)
                             matched = True
                 if not matched :
