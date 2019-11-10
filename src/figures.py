@@ -40,7 +40,7 @@ class Line:
 
 
 class Rectangle:
-    def __init__(self, c1, c2, color=[0,0,0]):
+    def __init__(self, c1, c2, color=[0, 0, 0]):
         self.c1 = c1
         self.c2 = c2
         self.color = color
@@ -48,18 +48,19 @@ class Rectangle:
         self.top = min(c1[1], c2[1])
         self.right = max(c1[0], c2[0])
         self.bottom = max(c1[1], c2[1])
-        self.width = self.right-self.left
-        self.length = self.bottom-self.top
+        self.width = self.right - self.left
+        self.length = self.bottom - self.top
         self.color = color
         self.rect = pygame.Rect(self.left, self.top, self.width, self.length)
         self.type = "rect"
-        
+
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect, 0)
-        
+
     def fetch_params(self):
-        return {"c1" : self.c1, "c2" : self.c2, "color" : self.color}
-        
+        return {"c1": self.c1, "c2": self.c2, "color": self.color}
+
+
 class TextBox:
 
     def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
@@ -113,6 +114,7 @@ class TextBox:
         width = max(140, self._txt_surface.get_width() + 20)
         self.__rect.w = width
         return width
+
     def draw(self, screen):
         # Blit the text.
         screen.blit(self._txt_surface, (self.__rect.x + 5, self.__rect.y + 5))
@@ -128,14 +130,9 @@ def draw_line(params, screen):
     return Line(**params).draw(screen)
 
 
-# def draw_textbox(id, screen, text_boxes):
-#     for tb in text_boxes:
-#         if tb.id_counter == id:
-#             return tb.draw(screen)
-#     #return TextBox(**params).draw(screen)
-
 def draw_textbox(params, screen):
     return TextBox(**params).draw(screen)
+
 
 def draw_rect(params, screen):
     return Rectangle(**params).draw(screen)

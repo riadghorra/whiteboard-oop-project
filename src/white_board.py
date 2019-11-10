@@ -36,8 +36,8 @@ class WhiteBoard:
         self.__handler = {"line": HandleLine(self),
                           "point": HandlePoint(self),
                           "text": HandleText(self),
-                          "rect" : HandleRect(self)}
-        
+                          "rect": HandleRect(self)}
+
         pygame.draw.line(self.__screen, self._config["active_color"], [0, self._config["toolbar_y"]],
                          [self._config["width"], self._config["toolbar_y"]], 1)
 
@@ -72,7 +72,7 @@ class WhiteBoard:
             box_counter += 1
             self.__font_sizes.append(font_size_box)
             font_size_box.add(self.__screen)
-        
+
         """
         initialisation des variables de dessin
         """
@@ -89,11 +89,11 @@ class WhiteBoard:
         self.active_box = None
 
         self.load_actions(self._hist)
-        
+
     """
     Encapsulation
     """
-    
+
     def is_done(self):
         return self._done
 
@@ -196,10 +196,7 @@ class WhiteBoard:
         else:
             for mod in self.__modes:
                 if mod.is_triggered(event):
-                    print(mod.name)
                     self.set_config(["mode"], mod.name)
-                    print(self.get_config(["mode"]))
-                    print(self.__handler[self.get_config(["mode"])])
             for col in self.__colors:
                 if col.is_triggered(event):
                     self.set_config(["text_box", "text_color"], col.color)
@@ -256,7 +253,7 @@ class WhiteBoard:
                     break
                 self.__handler[self.get_config(["mode"])].handle_all(event)
             msg_a_envoyer = self.get_hist()
-            msg_a_envoyer["message"] = "CARRY ON"
+            # msg_a_envoyer["message"] = "CARRY ON"
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
             new_hist = binary_to_dict(msg_recu)
@@ -265,13 +262,15 @@ class WhiteBoard:
                            (action["timestamp"] > last_timestamp and action["client"] != self._name)]
             for action in new_actions:
                 matched = False
-                if action["type"] == "Text_box": 
-                    for textbox in [x for x in self._hist["actions"] if x["type"]== "Text_box"]:
+                if action["type"] == "Text_box":
+                    for textbox in [x for x in self._hist["actions"] if x["type"] == "Text_box"]:
                         if action["id"] == textbox["id"]:
-                            textbox["params"] = action["params"]
+                            textbox["params"]["text"], textbox["params"]["w"] = action["params"]["text"], \
+                                                                                action["params"]["w"]
+                            self.clear_screen()
                             self.load_actions(self._hist)
                             matched = True
-                if not matched :
+                if not matched:
                     self.add_to_hist(action)
                     if action["type"] == "Point":
                         draw_point(action["params"], self.__screen)
@@ -279,10 +278,10 @@ class WhiteBoard:
                         draw_line(action["params"], self.__screen)
                     if action["type"] == "rect":
                         draw_rect(action["params"], self.__screen)
-                    if action["type"] == "Text_box": 
+                    if action["type"] == "Text_box":
                         draw_textbox(action["params"], self.__screen)
                 if action["timestamp"] > new_last_timestamp:
-                    new_last_timestamp = action["timestamp"]       
+                    new_last_timestamp = action["timestamp"]
             pygame.display.flip()
             last_timestamp = new_last_timestamp
 

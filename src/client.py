@@ -14,10 +14,6 @@ hote = '127.0.0.1'
 '''
 port = 5001
 
-
-
-
-
 connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connexion_avec_serveur.connect((hote, port))
 print("Connexion réussie avec le serveur")
@@ -27,6 +23,3 @@ msg_decode = binary_to_dict(msg_recu)
 hist = msg_decode
 whiteboard = WhiteBoard("client1", start_config, hist)
 whiteboard.start(connexion_avec_serveur)
-
-
-

@@ -14,6 +14,7 @@ class TriggerBox:
     def is_triggered(self, event):
         return self.rect.collidepoint(event.pos)
 
+
 class Mode(TriggerBox):
     def __init__(self, name, top_left, size):
         super(Mode, self).__init__(top_left, size)
@@ -135,7 +136,6 @@ class HandleText(EventHandler):
                                self.whiteboard.get_config(["text_box", "font"]),
                                self.whiteboard.get_config(["text_box", "font_size"]), "",
                                self.whiteboard.get_config(["active_color"]))
-            print('text box crée')
             self.whiteboard.append_text_box(text_box)
             now = datetime.now()
             timestamp = datetime.timestamp(now)
@@ -191,13 +191,14 @@ class HandleText(EventHandler):
             self.write_in_box(event)
         pygame.display.flip()
 
+
 class HandleRect(EventHandler):
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
         self.c1 = None
-        
+
     def handle_mouse_button_up(self, coord):
-        if self.c1 is not None :
+        if self.c1 is not None:
             coord = list(coord)
             coord[1] = max(self.whiteboard.get_config(["toolbar_y"]), coord[1])
             to_draw = Rectangle(self.c1, coord, self.whiteboard.get_config(["active_color"]))
@@ -214,8 +215,7 @@ class HandleRect(EventHandler):
         if handled:
             return
         elif event.type == pygame.MOUSEBUTTONUP:
-            self.handle_mouse_button_up(coord = event.dict['pos'])
+            self.handle_mouse_button_up(coord=event.dict['pos'])
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self.handle_mouse_button_down(coord = event.dict['pos'])
+            self.handle_mouse_button_down(coord=event.dict['pos'])
         pygame.display.flip()
-    
