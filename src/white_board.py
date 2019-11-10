@@ -264,15 +264,21 @@ class WhiteBoard:
             new_actions = [action for action in new_hist["actions"] if
                            (action["timestamp"] > last_timestamp and action["client"] != self._name)]
             for action in new_actions:
-                self.add_to_hist(action)
-                if action["type"] == "Point":
-                    draw_point(action["params"], self.__screen)
-                if action["type"] == "Line":
-                    draw_line(action["params"], self.__screen)
-                if action["type"] == "Text_box":
-                    draw_textbox(action["params"], self.__screen)
-                if action["type"] == "rect":
-                    draw_rect(action["params"], self.__screen)
+                if action["type"] == "Text_box": 
+                    for textbox in [x for x in self._hist if x["type"]== "Text_box"]:
+                        if action["id"] == textbox["id"]:
+                            textbox = action
+                            self.load_actions(self._hist)
+                else :
+                    self.add_to_hist(action)
+                    if action["type"] == "Point":
+                        draw_point(action["params"], self.__screen)
+                    if action["type"] == "Line":
+                        draw_line(action["params"], self.__screen)
+                    if action["type"] == "rect":
+                        draw_rect(action["params"], self.__screen)
+                    if action["type"] == "Text_box": 
+                        draw_textbox(action["params"], self.__screen)
                 if action["timestamp"] > new_last_timestamp:
                     new_last_timestamp = action["timestamp"]       
             pygame.display.flip()
