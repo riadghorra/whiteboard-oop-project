@@ -168,10 +168,10 @@ class HandleText(EventHandler):
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
                     if action['id'] == id_counter:
                         action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
+                        action['params']["w"] = self.whiteboard.active_box.update()
                         now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
-                self.whiteboard.active_box.update(self.whiteboard.get_hist())
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
 

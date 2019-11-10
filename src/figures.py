@@ -108,14 +108,11 @@ class TextBox:
     def rect(self):
         return self.__rect
 
-    def update(self, hist):
+    def update(self):
         # Resize the box if the text is too long.
         width = max(140, self._txt_surface.get_width() + 20)
         self.__rect.w = width
-        for action in [x for x in hist['actions'] if x['type'] == 'Text_box']:
-            if action['id'] == self.id_counter:
-                action['params']["w"] = width
-
+        return width
     def draw(self, screen):
         # Blit the text.
         screen.blit(self._txt_surface, (self.__rect.x + 5, self.__rect.y + 5))
