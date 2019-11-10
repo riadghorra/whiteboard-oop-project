@@ -264,12 +264,14 @@ class WhiteBoard:
             new_actions = [action for action in new_hist["actions"] if
                            (action["timestamp"] > last_timestamp and action["client"] != self._name)]
             for action in new_actions:
+                matched = False
                 if action["type"] == "Text_box": 
-                    for textbox in [x for x in self._hist if x["type"]== "Text_box"]:
+                    for textbox in [x for x in self._hist["actions"] if x["type"]== "Text_box"]:
                         if action["id"] == textbox["id"]:
                             textbox = action
                             self.load_actions(self._hist)
-                else :
+                            matched = True
+                if not matched :
                     self.add_to_hist(action)
                     if action["type"] == "Point":
                         draw_point(action["params"], self.__screen)
