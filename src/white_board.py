@@ -271,8 +271,10 @@ class WhiteBoard:
                     draw_line(action["params"], self.__screen)
                 if action["type"] == "Text_box":
                     draw_textbox(action["params"], self.__screen)
+                if action["type"] == "rect":
+                    draw_rect(action["params"], self.__screen)
                 if action["timestamp"] > new_last_timestamp:
-                    new_last_timestamp = action["timestamp"]
+                    new_last_timestamp = action["timestamp"]       
             pygame.display.flip()
             last_timestamp = new_last_timestamp
 
