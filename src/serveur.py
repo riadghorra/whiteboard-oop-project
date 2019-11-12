@@ -5,9 +5,7 @@ from datetime import datetime
 import json
 import initial_drawing
 
-clients = []
-threadlaunched = []
-historique = initial_drawing.drawing2
+
 
 
 def dict_to_binary(the_dict):
@@ -55,7 +53,7 @@ class Client(Thread):
                         self.done = True
                         print("Déconnexion d'un client")
                         self.current_hist["message"] = "end"
-                time.sleep(0.05)
+                '''time.sleep(0.001)'''
                 self.nom.send(dict_to_binary(self.current_hist))
         except ConnectionAbortedError:
             print("Un client s'est déconnecté")
@@ -63,32 +61,73 @@ class Client(Thread):
     def setclient(self, c):
         self.nom = c
 
+class Server:
+    def __init__(self, port, host = '', historique = None):
+        self._host = host
+        self._port = port
+        self.__connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__clients = []
+        self.__threadlaunched = []
+        if historique is None:
+            self.historique = {"message": "", 'actions': []}
+        else:
+            self.historique = historique
 
-# Il faudrait que ce soit une classe server
-def main():
-    hote = ''
-    port = 5001
-    connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connexion.bind((hote, port))
-    connexion.listen(100)
-    print("Le serveur est prêt sur le port numéro {}".format(port))
-    while True:
-        client, infos_connexion = connexion.accept()
-        client.send(dict_to_binary(historique))
-        new_thread = Client(historique)
-        new_thread.setclient(client)
-        clients.append(new_thread)
-        for thread in clients:
-            thread.start()
-            clients.remove(thread)
-            threadlaunched.append(thread)
-        for thread in threadlaunched:
-            if thread.done:
-                thread.join()
-                threadlaunched.remove(thread)
+    @property
+    def host(self):
+        return self._host
+
+    @property
+    def port(self):
+        return self._port
+
+    @property
+    def clients(self):
+        return self.__clients
+
+    def add_client(self, new_client):
+        self.__clients.append(new_client)
+
+    def remove_client(self, client_removed):
+        self.__clients.remove(client_removed)
+
+    @property
+    def threadlaunched(self):
+        return self.__threadlaunched
+
+    def add_thread(self, new_thread):
+        self.__threadlaunched.append(new_thread)
+
+    def remove_thread(self, thread_removed):
+        print(len(self.__clients))
+        self.__threadlaunched.remove(thread_removed)
+        print(len(self.__clients))
+
+    def scan_new_client(self):
+            client, infos_connexion = self.__connexion.accept()
+            client.send(dict_to_binary(self.historique))
+            new_thread = Client(self.historique)
+            new_thread.setclient(client)
+            self.add_client(new_thread)
+
+    def run(self):
+        self.__connexion.bind((self.host, self.port))
+        self.__connexion.listen(100)
+        print("Le serveur est prêt sur le port numéro {}".format(self.port))
+        while True:
+            self.scan_new_client()
+            for client in self.clients:
+                print(self.__clients)
+                client.start()
+                self.remove_client(client)
+                self.add_thread(client)
+            for thread in self.threadlaunched:
+                if thread.done:
+                    thread.join()
+                    self.remove_thread(thread)
 
 
 if __name__ == '__main__':
-    main()
+    server = Server(5001, '', initial_drawing.drawing2)
+    server.run()
 
-##connexion_avec_client.close()

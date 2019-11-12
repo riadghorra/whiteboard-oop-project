@@ -8,6 +8,7 @@
   "mode" : "point",
   "mode_box_size" : [30,30],
   "color_palette": {
+    "white" : [255, 255, 255],
     "black" : [0, 0, 0],
     "red" : [255, 0, 0],
     "green" : [0, 255, 0],
