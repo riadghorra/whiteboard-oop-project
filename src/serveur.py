@@ -6,8 +6,6 @@ import json
 import initial_drawing
 
 
-
-
 def dict_to_binary(the_dict):
     str = json.dumps(the_dict)
     return bytes(str, 'utf-8')
@@ -20,11 +18,24 @@ def binary_to_dict(the_binary):
 
 
 class Client(Thread):
-    def __init__(self, hist):
+    def __init__(self, hist, client_name=None):
         Thread.__init__(self)
-        self.nom = None
+        self.client_name = client_name
         self.done = False
         self.current_hist = hist
+
+    def check_match(self, action):
+        for textbox in [x for x in self.current_hist["actions"] if x["type"] == "Text_box"]:
+            if action["id"] == textbox["id"]:
+                textbox["timestamp"] = action["timestamp"]
+                textbox["params"] = action["params"]
+                return True
+        return False
+
+    def disconnect_client(self):
+        self.done = True
+        print("Déconnexion d'un client")
+        self.current_hist["message"] = "end"
 
     def run(self):
         last_timestamp = 0
@@ -39,21 +50,15 @@ class Client(Thread):
                             if action["client"] != self.nom:
                                 matched = False
                                 if action["type"] == "Text_box":
-                                    for textbox in [x for x in self.current_hist["actions"] if x["type"] == "Text_box"]:
-                                        if action["id"] == textbox["id"]:
-                                            textbox["timestamp"] = action["timestamp"]
-                                            textbox["params"] = action["params"]
-                                            matched = True
+                                    matched = self.check_match(action)
                                 if not matched:
                                     self.current_hist["actions"].append(action)
                             if action["timestamp"] > new_last_timestamp:
                                 new_last_timestamp = action["timestamp"]
                     last_timestamp = new_last_timestamp
                     if self.current_hist["message"] == "END":
-                        self.done = True
-                        print("Déconnexion d'un client")
-                        self.current_hist["message"] = "end"
-                '''time.sleep(0.001)'''
+                        self.disconnect_client()
+                time.sleep(0.001)
                 self.nom.send(dict_to_binary(self.current_hist))
         except ConnectionAbortedError:
             print("Un client s'est déconnecté")
@@ -61,8 +66,9 @@ class Client(Thread):
     def setclient(self, c):
         self.nom = c
 
+
 class Server:
-    def __init__(self, port, host = '', historique = None):
+    def __init__(self, port, host='', historique=None):
         self._host = host
         self._port = port
         self.__connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,16 +105,14 @@ class Server:
         self.__threadlaunched.append(new_thread)
 
     def remove_thread(self, thread_removed):
-        print(len(self.__clients))
         self.__threadlaunched.remove(thread_removed)
-        print(len(self.__clients))
 
     def scan_new_client(self):
-            client, infos_connexion = self.__connexion.accept()
-            client.send(dict_to_binary(self.historique))
-            new_thread = Client(self.historique)
-            new_thread.setclient(client)
-            self.add_client(new_thread)
+        client, infos_connexion = self.__connexion.accept()
+        client.send(dict_to_binary(self.historique))
+        new_thread = Client(self.historique)
+        new_thread.setclient(client)
+        self.add_client(new_thread)
 
     def run(self):
         self.__connexion.bind((self.host, self.port))
@@ -117,7 +121,6 @@ class Server:
         while True:
             self.scan_new_client()
             for client in self.clients:
-                print(self.__clients)
                 client.start()
                 self.remove_client(client)
                 self.add_thread(client)
@@ -130,4 +133,3 @@ class Server:
 if __name__ == '__main__':
     server = Server(5001, '', initial_drawing.drawing2)
     server.run()
-

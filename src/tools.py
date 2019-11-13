@@ -74,11 +74,12 @@ class HandlePoint(EventHandler):
         if handled:
             return
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.dict["button"] != 1:
+                return
             coord = event.dict["pos"]
             to_draw = Point(coord,
-                            event.dict['button'],
                             self.whiteboard.get_config(["active_color"]),
-                            self.whiteboard.get_config(["font_size"]))
+                            self.whiteboard.get_config(["font_size"]), self.whiteboard.get_config(["toolbar_y"]))
             now = datetime.now()
             timestamp = datetime.timestamp(now)
             self.whiteboard.draw(to_draw, timestamp)
@@ -207,8 +208,10 @@ class HandleRect(EventHandler):
             self.whiteboard.draw(to_draw, timestamp)
             self.c1 = None
 
-    def handle_mouse_button_down(self, coord):
-        self.c1 = coord
+    def handle_mouse_button_down(self, event):
+        if event.dict["button"] != 1:
+            return
+        self.c1 = event.dict['pos']
 
     def handle_all(self, event):
         handled = self.handle(event)
@@ -217,8 +220,9 @@ class HandleRect(EventHandler):
         elif event.type == pygame.MOUSEBUTTONUP:
             self.handle_mouse_button_up(coord=event.dict['pos'])
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self.handle_mouse_button_down(coord=event.dict['pos'])
+            self.handle_mouse_button_down(event)
         pygame.display.flip()
+
 
 class HandleCircle(EventHandler):
     def __init__(self, whiteboard):
@@ -228,14 +232,17 @@ class HandleCircle(EventHandler):
     def handle_mouse_button_up(self, coord):
         if self.center is not None:
             coord = list(coord)
-            to_draw = Circle(self.center, coord, self.whiteboard.get_config(["active_color"]), self.whiteboard.get_config(["toolbar_y"]))
+            to_draw = Circle(self.center, coord, self.whiteboard.get_config(["active_color"]),
+                             self.whiteboard.get_config(["toolbar_y"]))
             now = datetime.now()
             timestamp = datetime.timestamp(now)
             self.whiteboard.draw(to_draw, timestamp)
             self.center = None
 
-    def handle_mouse_button_down(self, coord):
-        self.center = coord
+    def handle_mouse_button_down(self, event):
+        if event.dict["button"] != 1:
+            return
+        self.center = event.dict['pos']
 
     def handle_all(self, event):
         handled = self.handle(event)
@@ -244,5 +251,5 @@ class HandleCircle(EventHandler):
         elif event.type == pygame.MOUSEBUTTONUP:
             self.handle_mouse_button_up(coord=event.dict['pos'])
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self.handle_mouse_button_down(coord=event.dict['pos'])
+            self.handle_mouse_button_down(event)
         pygame.display.flip()

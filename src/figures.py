@@ -2,27 +2,24 @@ import pygame
 import pygame.draw
 
 
-def distance(v1,v2):
-    return ((v1[0]-v2[0])**2+(v1[1]-v2[1])**2)**0.5
+def distance(v1, v2):
+    return ((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2) ** 0.5
+
 
 class Point:
-    def __init__(self, coord, clicktype, point_color, font_size):
-        self.coord = coord
-        self.clicktype = clicktype
+    def __init__(self, coord, point_color, font_size, toolbar_size=0):
         self.point_color = point_color
         self.font_size = font_size
+        self.coord = [coord[0], max(coord[1], toolbar_size + font_size + 1)]
         self.type = "Point"
 
     def draw(self, screen):
-        if self.clicktype != 1:
-            return
         pygame.draw.circle(screen, self.point_color, self.coord, self.font_size)
         pygame.display.flip()
         return
 
     def fetch_params(self):
-        return {"coord": self.coord, "clicktype": self.clicktype, "point_color": self.point_color,
-                "font_size": self.font_size}
+        return {"coord": self.coord, "point_color": self.point_color, "font_size": self.font_size}
 
 
 class Line:
@@ -43,7 +40,7 @@ class Line:
 
 
 class Rectangle:
-    def __init__(self, c1, c2, color=[0, 0, 0]):
+    def __init__(self, c1, c2, color):
         self.c1 = c1
         self.c2 = c2
         self.color = color
@@ -53,7 +50,6 @@ class Rectangle:
         self.bottom = max(c1[1], c2[1])
         self.width = self.right - self.left
         self.length = self.bottom - self.top
-        self.color = color
         self.rect = pygame.Rect(self.left, self.top, self.width, self.length)
         self.type = "rect"
 
@@ -63,21 +59,21 @@ class Rectangle:
     def fetch_params(self):
         return {"c1": self.c1, "c2": self.c2, "color": self.color}
 
+
 class Circle:
-    def __init__(self, center, point, color=[0, 0, 0], toolbar_size=0):
-        self.toolbar_size = toolbar_size
+    def __init__(self, center, extremity, color, toolbar_size=0):
         self.center = center
-        self.point = point
-        self.color = color
-        self.radius = ((self.center[0]-self.point[0])**2+(self.center[1]-self.point[1])**2)**0.5
+        self.radius = min(int(distance(center, extremity)), center[1] - toolbar_size - 1)
+        self.extremity = [center[0] + self.radius, center[1]]
         self.color = color
         self.type = "circle"
 
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, self.center, min(int(self.radius), self.center[1]-self.toolbar_size))
+        pygame.draw.circle(screen, self.color, self.center, self.radius)
 
     def fetch_params(self):
-        return {"center": self.center, "point": self.point, "color": self.color, "toolbar_size" : self.toolbar_size }
+        return {"center": self.center, "extremity": self.extremity, "color": self.color}
+
 
 class TextBox:
 
@@ -154,6 +150,7 @@ def draw_textbox(params, screen):
 
 def draw_rect(params, screen):
     return Rectangle(**params).draw(screen)
+
 
 def draw_circle(params, screen):
     return Circle(**params).draw(screen)
