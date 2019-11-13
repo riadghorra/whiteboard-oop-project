@@ -3,7 +3,7 @@ import pygame.draw
 import json
 from functools import reduce
 import operator
-from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect
+from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect, draw_circle
 from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
 
 '''
@@ -241,6 +241,8 @@ class WhiteBoard:
                 tb.draw(self.__screen)
             if action["type"] == "rect":
                 draw_rect(action["params"], self.__screen)
+            if action["type"] == "circle":
+                draw_circle(action["params"], self.__screen)
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):
@@ -280,6 +282,8 @@ class WhiteBoard:
                         draw_line(action["params"], self.__screen)
                     if action["type"] == "rect":
                         draw_rect(action["params"], self.__screen)
+                    if action["type"] == "circle":
+                        draw_circle(action["params"], self.__screen)
                     if action["type"] == "Text_box":
                         draw_textbox(action["params"], self.__screen)
                 if action["timestamp"] > new_last_timestamp:

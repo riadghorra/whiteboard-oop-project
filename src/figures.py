@@ -77,7 +77,7 @@ class Circle:
         pygame.draw.circle(screen, self.color, self.center, min(int(self.radius), self.center[1]-self.toolbar_size))
 
     def fetch_params(self):
-        return {"center": self.center, "point": self.point, "color": self.color}
+        return {"center": self.center, "point": self.point, "color": self.color, "toolbar_size" : self.toolbar_size }
 
 class TextBox:
 
