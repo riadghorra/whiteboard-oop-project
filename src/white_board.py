@@ -4,7 +4,7 @@ import json
 from functools import reduce
 import operator
 from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect
-from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect
+from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
 
 '''
 Ouverture de la configuration initiale
@@ -36,7 +36,8 @@ class WhiteBoard:
         self.__handler = {"line": HandleLine(self),
                           "point": HandlePoint(self),
                           "text": HandleText(self),
-                          "rect": HandleRect(self)}
+                          "rect": HandleRect(self),
+                          "circle": HandleCircle(self)}
 
         pygame.draw.line(self.__screen, self._config["active_color"], [0, self._config["toolbar_y"]],
                          [self._config["width"], self._config["toolbar_y"]], 1)
@@ -44,7 +45,8 @@ class WhiteBoard:
         self.__modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
                         Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+                        Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("circle", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
         for mod in self.__modes:
             mod.add(self.__screen)

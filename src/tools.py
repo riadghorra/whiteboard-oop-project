@@ -1,6 +1,6 @@
 import pygame
 import pygame.draw
-from figures import Point, Line, TextBox, draw_textbox, Rectangle
+from figures import Point, Line, TextBox, draw_textbox, Rectangle, Circle
 from datetime import datetime
 
 client = "client"
@@ -209,6 +209,33 @@ class HandleRect(EventHandler):
 
     def handle_mouse_button_down(self, coord):
         self.c1 = coord
+
+    def handle_all(self, event):
+        handled = self.handle(event)
+        if handled:
+            return
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.handle_mouse_button_up(coord=event.dict['pos'])
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.handle_mouse_button_down(coord=event.dict['pos'])
+        pygame.display.flip()
+
+class HandleCircle(EventHandler):
+    def __init__(self, whiteboard):
+        EventHandler.__init__(self, whiteboard)
+        self.center = None
+
+    def handle_mouse_button_up(self, coord):
+        if self.center is not None:
+            coord = list(coord)
+            to_draw = Circle(self.center, coord, self.whiteboard.get_config(["active_color"]), self.whiteboard.get_config(["toolbar_y"]))
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+            self.whiteboard.draw(to_draw, timestamp)
+            self.center = None
+
+    def handle_mouse_button_down(self, coord):
+        self.center = coord
 
     def handle_all(self, event):
         handled = self.handle(event)

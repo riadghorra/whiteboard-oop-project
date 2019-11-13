@@ -2,6 +2,9 @@ import pygame
 import pygame.draw
 
 
+def distance(v1,v2):
+    return ((v1[0]-v2[0])**2+(v1[1]-v2[1])**2)**0.5
+
 class Point:
     def __init__(self, coord, clicktype, point_color, font_size):
         self.coord = coord
@@ -60,6 +63,21 @@ class Rectangle:
     def fetch_params(self):
         return {"c1": self.c1, "c2": self.c2, "color": self.color}
 
+class Circle:
+    def __init__(self, center, point, color=[0, 0, 0], toolbar_size=0):
+        self.toolbar_size = toolbar_size
+        self.center = center
+        self.point = point
+        self.color = color
+        self.radius = ((self.center[0]-self.point[0])**2+(self.center[1]-self.point[1])**2)**0.5
+        self.color = color
+        self.type = "circle"
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, self.color, self.center, min(int(self.radius), self.center[1]-self.toolbar_size))
+
+    def fetch_params(self):
+        return {"center": self.center, "point": self.point, "color": self.color}
 
 class TextBox:
 
@@ -136,3 +154,6 @@ def draw_textbox(params, screen):
 
 def draw_rect(params, screen):
     return Rectangle(**params).draw(screen)
+
+def draw_circle(params, screen):
+    return Circle(**params).draw(screen)
