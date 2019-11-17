@@ -1,6 +1,7 @@
 import pygame
 import pygame.draw
 import json
+import sys
 from functools import reduce
 import operator
 from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect, draw_circle
@@ -23,13 +24,29 @@ def binary_to_dict(the_binary):
 
 
 class WhiteBoard:
-    def __init__(self, name, start_config, start_hist=None):
+    def __init__(self, client_name, start_config, start_hist=None):
+        """
+        Whiteboard initialization : we build the GUI using the config file and the potential history of actions made by
+         other users. Returns a Whiteboard window ready to use.
+
+        :param client_name: Name of the client who just opened a new whiteboard window (str)
+        :param start_config: Whiteboard configuration stored in config.json and loaded as a dict (dict)
+        :param start_hist: History of actions by other users (dict)
+        """
         pygame.init()
-        self._done = False
-        self._config = start_config
-        self._name = name
+
+        if not isinstance(client_name, str):
+            raise TypeError("Client name must be a string")
+        if not isinstance(start_config, dict):
+            raise TypeError("Starting configuration file must be a dictionary")
         if start_hist is None:
             start_hist = {"actions": []}
+        elif not isinstance(start_hist, dict):
+            raise TypeError("Starting history file must be a dictionary")
+
+        self._done = False
+        self._config = start_config
+        self._name = client_name
         self._hist = start_hist
         self.__screen = pygame.display.set_mode([self._config["width"], self._config["length"]])
         self.__screen.fill(self._config["board_background_color"])
@@ -42,38 +59,62 @@ class WhiteBoard:
         pygame.draw.line(self.__screen, self._config["active_color"], [0, self._config["toolbar_y"]],
                          [self._config["width"], self._config["toolbar_y"]], 1)
 
+        # We create a global variable to keep track of the position of the last mode box we create in order to make
+        # sure that there is no overlapping between left and right boxes on the toolbar on the toolbar
+        last_left_position = 0
+        last_right_position = self._config["width"] - self._config["mode_box_size"][0]
+
         self.__modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
                         Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("circle", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
-        for mod in self.__modes:
-            mod.add(self.__screen)
+        # If right and left boxes overlap, raise an error and close pygame
+        try:
+            for mod in self.__modes:
+                assert last_left_position < last_right_position + 1, "Too many tools to fit in the Whiteboard " \
+                                                                     "toolbar, please increase width in config.json"
+                mod.add(self.__screen)
+                last_left_position += self._config["mode_box_size"][0]
+        except AssertionError as e:
+            print(e)
+            pygame.quit()
+            sys.exit()
 
         """
         Choix des couleurs
         """
         self.__colors = []
-        box_counter = 1
-        for key, value in self._config["color_palette"].items():
-            color_box = ColorBox(value, (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
-                                 tuple(self._config["mode_box_size"]))
-            box_counter += 1
-            self.__colors.append(color_box)
-            color_box.add(self.__screen)
+        try:
+            for key, value in self._config["color_palette"].items():
+                assert last_left_position < last_right_position + 1, "Too many tools to fit in the Whiteboard " \
+                                                                     "toolbar, please increase width in config.json"
+                color_box = ColorBox(value, (last_right_position, 0), tuple(self._config["mode_box_size"]))
+                last_right_position -= self._config["mode_box_size"][0]
+                self.__colors.append(color_box)
+                color_box.add(self.__screen)
+        except AssertionError as e:
+            print(e)
+            pygame.quit()
+            sys.exit()
 
         """
         Choix des épaisseurs
         """
         self.__font_sizes = []
-        for size in self._config["pen_sizes"]:
-            font_size_box = FontSizeBox(size,
-                                        (self._config["width"] - box_counter * self._config["mode_box_size"][0], 0),
-                                        tuple(self._config["mode_box_size"]))
-            box_counter += 1
-            self.__font_sizes.append(font_size_box)
-            font_size_box.add(self.__screen)
+        try:
+            for size in self._config["pen_sizes"]:
+                assert last_left_position < last_right_position + 1, "Too many tools to fit in the Whiteboard " \
+                                                                     "toolbar, please increase width in config.json"
+                font_size_box = FontSizeBox(size, (last_right_position, 0), tuple(self._config["mode_box_size"]))
+                last_right_position -= self._config["mode_box_size"][0]
+                self.__font_sizes.append(font_size_box)
+                font_size_box.add(self.__screen)
+        except AssertionError as e:
+            print(e)
+            pygame.quit()
+            sys.exit()
 
         """
         initialisation des variables de dessin
@@ -186,15 +227,36 @@ class WhiteBoard:
         self._text_boxes.append(textbox)
 
     def draw(self, obj, timestamp):
+        """
+        Method to draw figures defined in figures.py. Also adds drawn objects to history.
+
+        :param obj: class of figure to draw
+        :param timestamp: timestamp at which the drawing happens
+        :return: None
+        """
+
+        # Draw object on screen
         obj.draw(self.__screen)
+
+        # Create dict containing object parameters and right timestamp to add to history
         hist_obj = {"type": obj.type, "timestamp": timestamp, "params": obj.fetch_params(), "client": self._name}
+
+        # Special case if it's a Text_box object, we need to get the correct box id
         if hist_obj["type"] == "Text_box":
             hist_obj["id"] = obj.id_counter
         self.add_to_hist(hist_obj)
 
-    def switch_config(self, event=None):
+    def switch_config(self, event):
+        """
+        Switch between different modes
+
+        :param event: Action by the user : a mouse click on either modes, colors or font sizes
+        :return: None
+        """
         if event == "quit":
             self.set_config(["mode"], "quit")
+
+        # We go through each mode, color and font size to see if that mode should be triggered by the event
         else:
             for mod in self.__modes:
                 if mod.is_triggered(event):
@@ -208,9 +270,23 @@ class WhiteBoard:
                     self.set_config(["font_size"], font_size_.font_size)
 
     def set_active_box(self, box, new=True):
+        """
+        A method specific to text boxes : select an existing box or one that has just been created to edit. This box is
+        thus said to be "active"
+
+        :param box: instance of the TextBox class
+        :param new: boolean to specify if the box was just created or already existed
+        :return:
+        """
+
+        # If the selected box is already the active one, do nothing
         if box == self.active_box:
             return
+
+        # If there is a box that is active
         if self.active_box is not None:
+
+            # Change its color to the "inactive color"
             self.active_box.set_textbox_color(self.get_config(["text_box", "inactive_color"]))
             id_counter = self.active_box.id_counter
             for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
@@ -228,21 +304,40 @@ class WhiteBoard:
         self.active_box.draw(self.__screen)
         pygame.display.flip()
 
+    def draw_action(self, action):
+        """
+        Draw the result of an action by the user on the whiteboard
+
+        :param action: usually a mouse action by the user
+        :return:
+        """
+        if action["type"] == "Point":
+            draw_point(action["params"], self.__screen)
+        if action["type"] == "Line":
+            draw_line(action["params"], self.__screen)
+        if action["type"] == "Text_box":
+            tb = TextBox(**action["params"])
+            tb.draw(self.__screen)
+        if action["type"] == "rect":
+            draw_rect(action["params"], self.__screen)
+        if action["type"] == "circle":
+            draw_circle(action["params"], self.__screen)
+
     def load_actions(self, hist):
+        """
+        Load actions from history
+
+        :param hist: list of dict representing the history of actions in the whiteboard session
+        :return:
+        """
+
+        # Sort actions chronologically
         sred = sorted(hist["actions"],
                       key=lambda value: value["timestamp"])
+
+        # Go through each action and draw it
         for action in sred:
-            if action["type"] == "Point":
-                draw_point(action["params"], self.__screen)
-            if action["type"] == "Line":
-                draw_line(action["params"], self.__screen)
-            if action["type"] == "Text_box":
-                tb = TextBox(**action["params"])
-                tb.draw(self.__screen)
-            if action["type"] == "rect":
-                draw_rect(action["params"], self.__screen)
-            if action["type"] == "circle":
-                draw_circle(action["params"], self.__screen)
+            self.draw_action(action)
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):
@@ -258,11 +353,13 @@ class WhiteBoard:
                 self.__handler[self.get_config(["mode"])].handle_all(event)
             msg_a_envoyer = self.get_hist()
             # msg_a_envoyer["message"] = "CARRY ON"
+
+            # Send dict to server
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
-            "dict send"
+            # Dict received from server
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
-            "dict rcv"
             new_hist = binary_to_dict(msg_recu)
+            print(new_hist)
             new_last_timestamp = last_timestamp
             new_actions = [action for action in new_hist["actions"] if
                            (action["timestamp"] > last_timestamp and action["client"] != self._name)]
@@ -278,16 +375,7 @@ class WhiteBoard:
                             matched = True
                 if not matched:
                     self.add_to_hist(action)
-                    if action["type"] == "Point":
-                        draw_point(action["params"], self.__screen)
-                    if action["type"] == "Line":
-                        draw_line(action["params"], self.__screen)
-                    if action["type"] == "rect":
-                        draw_rect(action["params"], self.__screen)
-                    if action["type"] == "circle":
-                        draw_circle(action["params"], self.__screen)
-                    if action["type"] == "Text_box":
-                        draw_textbox(action["params"], self.__screen)
+                    self.draw_action(action)
                 if action["timestamp"] > new_last_timestamp:
                     new_last_timestamp = action["timestamp"]
             pygame.display.flip()
@@ -300,6 +388,10 @@ class WhiteBoard:
         connexion_avec_serveur.close()
 
     def start_local(self):
+        """
+        Starts Whiteboard locally. Used to test stuff and debug.
+        :return:
+        """
         while not self.is_done():
             for event in pygame.event.get():
                 if self.get_config(["mode"]) == "quit":
