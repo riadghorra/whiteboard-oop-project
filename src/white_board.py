@@ -259,7 +259,9 @@ class WhiteBoard:
             msg_a_envoyer = self.get_hist()
             # msg_a_envoyer["message"] = "CARRY ON"
             connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
+            "dict send"
             msg_recu = connexion_avec_serveur.recv(2 ** 24)
+            "dict rcv"
             new_hist = binary_to_dict(msg_recu)
             new_last_timestamp = last_timestamp
             new_actions = [action for action in new_hist["actions"] if

@@ -1,23 +1,31 @@
 import socket
 import time
 from threading import Thread
-from datetime import datetime
 import json
 import initial_drawing
 
-
-def dict_to_binary(the_dict):
-    str = json.dumps(the_dict)
+'''
+Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
+L'appel de ces dux fonctions permet d'échanger des dictionnaires par socket
+'''
+def dict_to_binary(dict):
+    str = json.dumps(dict)
     return bytes(str, 'utf-8')
 
 
-def binary_to_dict(the_binary):
-    jsn = ''.join(the_binary.decode("utf-8"))
+def binary_to_dict(binary):
+    jsn = ''.join(binary.decode("utf-8"))
     d = json.loads(jsn)
     return d
 
 
 class Client(Thread):
+    """
+    Classe d'un client qui se connecte au whiteboard. Cette classe hérite de Thread de sorte que plusieurs clients pourront utiliser le whiteboard en parallèle
+    Chaque client a un nom, un booleen qui indique si le client a terminé d'utiliser le whiteboard,
+    ainsi qu'un historique avec toutes les opérations effectuées par lui ou les autres utilisateurs sur le whiteboard.
+    C'est cet historique que le client va échanger avec le serveur
+    """
     def __init__(self, hist, client_name=None):
         Thread.__init__(self)
         self.client_name = client_name
@@ -25,6 +33,10 @@ class Client(Thread):
         self.current_hist = hist
 
     def check_match(self, action):
+        '''
+        methode permettant de vérifier si une action est déjà existante dans l'objet self.current_hist.
+        Elle permet notamment de savoir si une textbox vient d'être rajoutée par un autre utilisateur du whiteboard ou si la textbox a simplement été mise à jour
+        '''
         for textbox in [x for x in self.current_hist["actions"] if x["type"] == "Text_box"]:
             if action["id"] == textbox["id"]:
                 textbox["timestamp"] = action["timestamp"]
@@ -33,11 +45,20 @@ class Client(Thread):
         return False
 
     def disconnect_client(self):
+        '''
+        methode s'executant pour mettre fin à la connexion entre le serveur et un client
+        '''
         self.done = True
         print("Déconnexion d'un client")
         self.current_hist["message"] = "end"
 
     def run(self):
+        '''
+        Dans cette methode, la boucle while centrale vient en continu récupérer les dictionnaires d'historiques envoyés par les clients.
+        Si le dictionnaire est différent du précédent, cela signifie qu'une mise à jour a été faite par un utilisateur.
+        Il convient alors de comparer le timestamp de ces mises à jour au last_timestamp qui est le dernier timestamp où le whiboard était à jour.
+        Toutes les nouvelles opérations sont ensuite envoyées au client
+        '''
         last_timestamp = 0
         new_last_timestamp = 0
         try:
@@ -47,6 +68,7 @@ class Client(Thread):
                 if new_hist != self.current_hist:
                     for action in new_hist["actions"]:
                         if action["timestamp"] > last_timestamp:
+                            '''S'exécute si l'action est une nouvelle action faite par un autre utilisateur'''
                             if action["client"] != self.nom:
                                 matched = False
                                 if action["type"] == "Text_box":
@@ -55,12 +77,15 @@ class Client(Thread):
                                     self.current_hist["actions"].append(action)
                             if action["timestamp"] > new_last_timestamp:
                                 new_last_timestamp = action["timestamp"]
+                                '''La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les actions'''
                     last_timestamp = new_last_timestamp
                     if self.current_hist["message"] == "END":
+                        '''S'éxécute si le client se déconnecte'''
                         self.disconnect_client()
-                time.sleep(0.001)
+                time.sleep(0.01)
                 self.nom.send(dict_to_binary(self.current_hist))
         except ConnectionAbortedError:
+            '''Gére la déconnexion soudaine d'un client'''
             print("Un client s'est déconnecté")
 
     def setclient(self, c):
@@ -68,6 +93,14 @@ class Client(Thread):
 
 
 class Server:
+    '''
+    Cette classe définit un serveur.
+    Elle a pour paramètres un port et une adresse hôte nécessaire à la création d'une connexion,
+    également une connexion socket propre au serveur,
+    ainsi qu'une liste des clients à connecter,
+    une liste des threads lancés qui est la liste des clients actuellement connectés
+    et un dictionnaire historique des opérations faites sur le serveur à échanger avec les différents clients
+    '''
     def __init__(self, port, host='', historique=None):
         self._host = host
         self._port = port
@@ -78,7 +111,7 @@ class Server:
             self.historique = {"message": "", 'actions': []}
         else:
             self.historique = historique
-
+    '''Les méthodes et properties suivantes permettent de gérer les encapsulations'''
     @property
     def host(self):
         return self._host
@@ -108,6 +141,7 @@ class Server:
         self.__threadlaunched.remove(thread_removed)
 
     def scan_new_client(self):
+        '''cete methode permet de récupérer les informations du client entrant'''
         client, infos_connexion = self.__connexion.accept()
         client.send(dict_to_binary(self.historique))
         new_thread = Client(self.historique)
@@ -115,8 +149,11 @@ class Server:
         self.add_client(new_thread)
 
     def run(self):
+        '''dans cette méthode, la boucle while permet d'écouter en permanence de nouveaux clients potentiels
+        et de gérer les déconnexions de clients et fermetures de thread'''
         self.__connexion.bind((self.host, self.port))
         self.__connexion.listen(100)
+        '''Le serveur acceptera maximum 100 clients'''
         print("Le serveur est prêt sur le port numéro {}".format(self.port))
         while True:
             self.scan_new_client()
