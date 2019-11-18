@@ -11,13 +11,19 @@ L'appel de ces dux fonctions permet d'échanger des dictionnaires par socket
 
 
 def dict_to_binary(dict):
-    str = json.dumps(dict)
-    return bytes(str, 'utf-8')
+    try:
+        str = json.dumps(dict)
+        return bytes(str, 'utf-8')
+    except TypeError:
+        print("Le dictionnaire n'est pas du format attendu")
 
 
 def binary_to_dict(binary):
-    jsn = ''.join(binary.decode("utf-8"))
-    d = json.loads(jsn)
+    try:
+        jsn = ''.join(binary.decode("utf-8"))
+        d = json.loads(jsn)
+    except TypeError:
+        print("Le message reçu n'est pas du format attendu")
     return d
 
 
