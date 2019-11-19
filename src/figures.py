@@ -25,7 +25,9 @@ class Point:
     def __init__(self, coord, point_color, font_size, toolbar_size=0):
         self.point_color = point_color
         self.font_size = font_size
-        self.coord = [coord[0], max(coord[1], toolbar_size + font_size + 1)]#to not write on the toolbar if the font size is big
+
+        # used to not write on the toolbar if the font size is big
+        self.coord = [coord[0], max(coord[1], toolbar_size + font_size + 1)]
         self.type = "Point"
 
     def draw(self, screen):
@@ -60,7 +62,7 @@ class Line:
 
     def draw(self, screen):
         """
-        Dessine la ligne sur l ecran
+        Dessine la ligne sur l'ecran
         """
         pygame.draw.line(screen, self.line_color, self.start_pos, self.end_pos, self.font_size)
         return
@@ -77,8 +79,8 @@ class Rectangle:
     """
     Classe d un rectangle
     color (list) : couleur du rectangle
-    left, right (int) : coordonees d absicce a gauche, droite du rectangle
-    bottom, top (int) : coordonees d ordonnee en haut et en bas du rectangle
+    left, right (int) : coordonees d'absice a gauche, droite du rectangle
+    bottom, top (int) : coordonees d'ordonnee en haut et en bas du rectangle
     """
     def __init__(self, c1, c2, color):
         """
@@ -88,7 +90,8 @@ class Rectangle:
         self.c1 = c1
         self.c2 = c2
         self.color = color
-        self.left = min(c1[0], c2[0]) #on recupere left avec le min des abscisses et on fait pareil pour right top et bottom
+        # on recupere left avec le min des abscisses et on fait pareil pour right top et bottom
+        self.left = min(c1[0], c2[0])
         self.top = min(c1[1], c2[1])
         self.right = max(c1[0], c2[0])
         self.bottom = max(c1[1], c2[1])
@@ -99,7 +102,7 @@ class Rectangle:
 
     def draw(self, screen):
         """
-        Dessine le rectangle sur l ecran
+        Dessine le rectangle sur l'ecran
         """
         pygame.draw.rect(screen, self.color, self.rect, 0)
 
@@ -114,14 +117,15 @@ class Circle:
     """
     Classe d un cercle
     center (list) : les coordonees du centre
-    extremity (list) : les coordonees d une extremite
+    extremity (list) : les coordonees d'une extremite
     color (list) : couleur
     toolbar_size (int) : la taille de la toolbar en pixel pour ne pas dessiner dessus
     radius (int) : rayon
     """
     def __init__(self, center, extremity, color, toolbar_size=0):
         self.center = center
-        self.radius = min(int(distance(center, extremity)), center[1] - toolbar_size - 1)#on ne veut pas depasser sur la toolbar donc on reduit le rayon
+        # on ne veut pas depasser sur la toolbar donc on reduit le rayon
+        self.radius = min(int(distance(center, extremity)), center[1] - toolbar_size - 1)
         self.extremity = [center[0] + self.radius, center[1]]
         self.color = color
         self.type = "circle"
@@ -142,7 +146,7 @@ class Circle:
 class TextBox:
     """
     Classe d une textbox
-    x, y (int) : l abscisse a gauche et l ordonee a droite de la textbox ie (x,y) est le topleft
+    x, y (int) : l'abscisse a gauche et l'ordonee a droite de la textbox ie (x,y) est le topleft
     w (int) : longueur de la textbox
     h (int) : hauteur de la textbox
     box_color (list) : couleur du contour de la box
@@ -198,7 +202,7 @@ class TextBox:
 
     def render_font(self, text, color, antialias=True):
         """
-        effctue le rendu du texte
+        effectue le rendu du texte
         """
         return self._sysfont.render(text, antialias, color)
 
@@ -232,7 +236,7 @@ class TextBox:
 
 def draw_point(params, screen):
     """
-    dessine un point sur l ecran avec les parametres d entree
+    dessine un point sur l'ecran avec les parametres d entree
     params (dict) : dictionnaires des parametres
     screen (pygame screen) : ecran sur lequel dessiner
     """
@@ -243,7 +247,7 @@ def draw_point(params, screen):
 
 def draw_line(params, screen):
     """
-    dessine une ligne sur l ecran avec les parametres d entree
+    dessine une ligne sur l'ecran avec les parametres d entree
     params (dict) : dictionnaires des parametres
     screen (pygame screen) : ecran sur lequel dessiner
     """
@@ -254,7 +258,7 @@ def draw_line(params, screen):
 
 def draw_textbox(params, screen):
     """
-    dessine une textbox sur l ecran avec les parametres d entree
+    dessine une textbox sur l'ecran avec les parametres d entree
     params (dict) : dictionnaires des parametres
     screen (pygame screen) : ecran sur lequel dessiner
     """
@@ -265,7 +269,7 @@ def draw_textbox(params, screen):
 
 def draw_rect(params, screen):
     """
-    dessine un rectangle sur l ecran avec les parametres d entree
+    dessine un rectangle sur l'ecran avec les parametres d entree
     params (dict) : dictionnaires des parametres
     screen (pygame screen) : ecran sur lequel dessiner
     """
@@ -276,7 +280,7 @@ def draw_rect(params, screen):
 
 def draw_circle(params, screen):
     """
-    dessine un cercle sur l ecran avec les parametres d entree
+    dessine un cercle sur l'ecran avec les parametres d entree
     params (dict) : dictionnaires des parametres
     screen (pygame screen) : ecran sur lequel dessiner
     """

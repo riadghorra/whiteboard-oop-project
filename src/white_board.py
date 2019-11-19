@@ -283,23 +283,29 @@ class WhiteBoard:
         if box == self.active_box:
             return
 
-        # If there is a box that is active
+        # If there is a box that is active we must turn it into "inactive"
         if self.active_box is not None:
 
             # Change its color to the "inactive color"
             self.active_box.set_textbox_color(self.get_config(["text_box", "inactive_color"]))
+            # Select the id of previous active box
             id_counter = self.active_box.id_counter
+            # Find the previous active box and change its color in history
             for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
                 if action['id'] == id_counter:
                     action["params"]["text"] = self.active_box.get_textbox_text()
                     action['params']["box_color"] = self.get_config(["text_box", "inactive_color"])
+            # Render it
             self.active_box.draw(self.__screen)
 
+        # If selected box already exists on the whiteboard we must turn it into "active"
         if not new:
             id_counter = box.id_counter
             for action in [x for x in self.get_hist('actions') if x['type'] == 'Text_box']:
                 if action['id'] == id_counter:
                     action['params']["box_color"] = self.get_config(["text_box", "active_color"])
+
+        # Draw the newly activated box
         self.active_box = box
         self.active_box.draw(self.__screen)
         pygame.display.flip()
@@ -316,8 +322,7 @@ class WhiteBoard:
         if action["type"] == "Line":
             draw_line(action["params"], self.__screen)
         if action["type"] == "Text_box":
-            tb = TextBox(**action["params"])
-            tb.draw(self.__screen)
+            draw_textbox(action["params"], self.__screen)
         if action["type"] == "rect":
             draw_rect(action["params"], self.__screen)
         if action["type"] == "circle":
@@ -341,50 +346,73 @@ class WhiteBoard:
         pygame.display.flip()
 
     def start(self, connexion_avec_serveur):
-        last_timestamp = 0
-        for action in self._hist["actions"]:
-            if action["timestamp"] > last_timestamp:
-                last_timestamp = action["timestamp"]
+        """
+
+        :param connexion_avec_serveur: socket to connect with server (socket.socket)
+        :return:
+        """
+
+        # Take most recent timestamp in history
+        last_timestamp = max([x["timestamp"] for x in self._hist["actions"]])
+        # for action in self._hist["actions"]:
+        #     if action["timestamp"] > last_timestamp:
+        #         last_timestamp = action["timestamp"]
         while not self.is_done():
+
+            # Browse all events done by user
             for event in pygame.event.get():
+                # If user closes the window, quit the whiteboard
                 if self.get_config(["mode"]) == "quit":
                     self.end()
                     break
+                # Use specific handling method for current drawing mode
                 self.__handler[self.get_config(["mode"])].handle_all(event)
-            msg_a_envoyer = self.get_hist()
-            # msg_a_envoyer["message"] = "CARRY ON"
 
-            # Send dict to server
-            connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
+            # msg_a_envoyer["message"] = "CARRY ON"
+            # Send dict history to server
+            message_a_envoyer = self.get_hist()
+            connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
             # Dict received from server
-            msg_recu = connexion_avec_serveur.recv(2 ** 24)
-            new_hist = binary_to_dict(msg_recu)
-            print(new_hist)
+            new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
+
+            # Initialize most recent timestamp
             new_last_timestamp = last_timestamp
+
+            # Consider actions made by another client after new_last_timestamp
             new_actions = [action for action in new_hist["actions"] if
                            (action["timestamp"] > last_timestamp and action["client"] != self._name)]
             for action in new_actions:
+                # Here there are two cases, a new figure (point, line, rect, circle, new text box) is created or an
+                # existing text box is modified. For this second case, we use the variable "matched" as indicator
                 matched = False
                 if action["type"] == "Text_box":
+                    # Find the text box id
                     for textbox in [x for x in self._hist["actions"] if x["type"] == "Text_box"]:
                         if action["id"] == textbox["id"]:
+                            # Modify it witht the newly acquired parameters from server
                             textbox["params"]["text"], textbox["params"]["w"] = action["params"]["text"], \
                                                                                 action["params"]["w"]
+
+                            # Draw the modified text box with updated parameters
                             self.clear_screen()
                             self.load_actions(self._hist)
                             matched = True
+                # If we are in the first case, we add the new actions to history and draw them
                 if not matched:
                     self.add_to_hist(action)
                     self.draw_action(action)
+                # Update last_timestamp
                 if action["timestamp"] > new_last_timestamp:
                     new_last_timestamp = action["timestamp"]
             pygame.display.flip()
+            # Update last_timestamp
             last_timestamp = new_last_timestamp
 
+        # Once we are done, we quit pygame and send end message
         pygame.quit()
         print("Fermeture de la connexion")
-        msg_a_envoyer["message"] = "END"
-        connexion_avec_serveur.send(dict_to_binary(msg_a_envoyer))
+        message_a_envoyer["message"] = "END"
+        connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
         connexion_avec_serveur.close()
 
     def start_local(self):

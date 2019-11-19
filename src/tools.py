@@ -1,5 +1,5 @@
 """
-Module contenant les differents outils de gestions du tableau
+Module contenant les differents outils de gestion du tableau
 """
 import pygame
 import pygame.draw
@@ -13,7 +13,7 @@ from figures import Point, Line, TextBox, Rectangle, Circle
 
 class TriggerBox:
     """
-    Classe mere abstraite qui represente une zone carree de l ecran sur laquelle on peut cliquer
+    Classe mere abstraite qui represente une zone carree de l'ecran sur laquelle on peut cliquer
     top_left (list) : coordonees du pixel en haut a gauche
     size (int) : taille en pixel du cote du carre
     """
@@ -23,7 +23,7 @@ class TriggerBox:
 
     def is_triggered(self, event):
         """
-        retourne le booleen : l utilisateur clique sur la triggerbox
+        retourne le booleen : l'utilisateur clique sur la triggerbox
         event (pygame event) : clic de souris d un utilisateur
         """
         return self.rect.collidepoint(event.pos)
@@ -31,8 +31,8 @@ class TriggerBox:
 
 class Mode(TriggerBox):
     """
-    Classe d un mode de dessin du tableau dans lequel on peut rentrer via la triggerbox dont il herite
-    name (string) : nom du mode qui sera inscrit dans sa triggerbox sur l ecran
+    Classe d'un mode de dessin du tableau dans lequel on peut rentrer via la triggerbox dont il herite
+    name (string) : nom du mode qui sera inscrit dans sa triggerbox sur l'ecran
     """
     def __init__(self, name, top_left, size):
         super(Mode, self).__init__(top_left, size)
@@ -40,7 +40,7 @@ class Mode(TriggerBox):
 
     def add(self, screen):
         """
-        Dessine la triggerbox du mode et la rend active sur l ecran
+        Dessine la triggerbox du mode et la rend active sur l'ecran
         """
         pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
         font = pygame.font.Font(None, 18)
@@ -50,7 +50,7 @@ class Mode(TriggerBox):
 
 class ColorBox(TriggerBox):
     """
-    Classe d une triggerbox de choix de couleur sur l ecran
+    Classe d'une triggerbox de choix de couleur sur l'ecran
     color (list) : color of the box
     """
     def __init__(self, color, top_left, size):
@@ -66,7 +66,7 @@ class ColorBox(TriggerBox):
 
 class FontSizeBox(TriggerBox):
     """
-    Classe des triggerbox de choix de l epaisseur du trait
+    Classe des triggerbox de choix de l'epaisseur du trait
     font_size (int) : epaisseur du trait en pixel
     """
     def __init__(self, font_size, top_left, size):
@@ -87,7 +87,7 @@ class FontSizeBox(TriggerBox):
 
 class EventHandler:
     """
-    Classe mere des gestionnaires d evenements utilisateur en fontcion des modes
+    Classe mere des gestionnaires d'evenements utilisateur en fontcion des modes
     whiteboard : classe whiteboard sur laquelle notre handler va gerer les evenements utilisateur
     """
     def __init__(self, whiteboard):
@@ -95,7 +95,7 @@ class EventHandler:
 
     def handle(self, event):
         """
-        Ce test commun a tous les modes verifie si l utilisateur quitte ou change de mode
+        Ce test commun a tous les modes verifie si l'utilisateur quitte ou change de mode
         """
         out = False
         if event.type == pygame.QUIT:
@@ -112,17 +112,19 @@ class EventHandler:
 
 class HandlePoint(EventHandler):
     """
-    Classe du gestionnaire d evenement en mode point
+    Classe du gestionnaire d'evenement en mode point
     """
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
 
     def handle_all(self, event):
         """
-        En mode point on s interesse aux clics gauches de souris et on dessine un point
+        En mode point on s'interesse aux clics gauches de souris et on dessine un point
         """
         handled = self.handle(event)
-        if handled:# commun a tous les handler qui verifie si on change de mode ou on quitte
+
+        # commun a tous les handler qui verifie si on change de mode ou on quitte
+        if handled:
             return
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.dict["button"] != 1:
@@ -138,14 +140,14 @@ class HandlePoint(EventHandler):
 
 class HandleLine(EventHandler):
     """
-    Classe du gestionnaire d evenement en mode ligne
+    Classe du gestionnaire d'evenement en mode ligne
     """
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
 
     def handle_mouse_motion(self):
         """
-        Gere les mouvements de souris : i l utilisateur a le clic enfonce le rendu du trait est en direct
+        Gere les mouvements de souris : l'utilisateur a le clic enfonce le rendu du trait est en direct
         """
         if self.whiteboard.is_drawing():
             self.whiteboard.mouse_position = pygame.mouse.get_pos()
@@ -192,7 +194,7 @@ class HandleLine(EventHandler):
 
 class HandleText(EventHandler):
     """
-    Classe du gestionnaire d evenement en mode textbox
+    Classe du gestionnaire d'evenement en mode textbox
     """
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
@@ -200,8 +202,9 @@ class HandleText(EventHandler):
     def box_selection(self, event):
         """
         Gere les clics utilisateur
-        Si il s agit d un clic droit, on cree une nouvelle box
-        Si il s agit d un clic gauche on regarde si cela selectionne une zone d une ancienne box qui deviendra la box active
+        S'il s'agit d'un clic droit, on cree une nouvelle box
+        S'il s'agit d'un clic gauche on regarde si cela selectionne une zone d une ancienne box qui deviendra la box
+         active
         """
         if event.dict["button"] == 3:
             coord = event.dict['pos']
@@ -224,11 +227,13 @@ class HandleText(EventHandler):
 
     def write_in_box(self, event):
         """
-        Gere les entrees clavier de l utilisateur
+        Gere les entrees clavier de l'utilisateur
         Si une box est selectionnee cela modifie le texte en consequence
         """
         if self.whiteboard.active_box is not None:
-            if event.key == pygame.K_BACKSPACE:#on efface un caractere
+
+            # on efface un caractere
+            if event.key == pygame.K_BACKSPACE:
                 self.whiteboard.active_box.delete_char_from_text()
                 id_counter = self.whiteboard.active_box.id_counter
                 for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
@@ -237,7 +242,8 @@ class HandleText(EventHandler):
                         now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
-                self.whiteboard.clear_screen()#pour modifier la box il est malheureusement necessaire de re-render tous le tableau
+                # pour modifier la box il est malheureusement necessaire de re-render tout le tableau
+                self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
             elif event.key == pygame.K_TAB or event.key == pygame.K_RETURN:
                 pass
@@ -251,7 +257,8 @@ class HandleText(EventHandler):
                         now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
-                self.whiteboard.clear_screen()#on re-render tout aussi ici pour eviter de supperposer des ecritures
+                # on re-render tout aussi ici pour éviter de superposer des écritures
+                self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
 
         if self.whiteboard.active_box is not None:
@@ -262,7 +269,7 @@ class HandleText(EventHandler):
 
     def handle_all(self, event):
         """
-        Gere tous les evenements avec la methode associe via un arbre de if
+        Gere tous les evenements avec la methode associée via un arbre de if
         """
         handled = self.handle(event)
         if handled:
@@ -276,7 +283,7 @@ class HandleText(EventHandler):
 
 class HandleRect(EventHandler):
     """
-    Classe du gestionnaire d evenement en mode rectangle
+    Classe du gestionnaire d'evenement en mode rectangle
     Nous avons decidé de faire un systeme de clic drag pour tracer un rectangle
     """
     def __init__(self, whiteboard):
@@ -285,11 +292,12 @@ class HandleRect(EventHandler):
 
     def handle_mouse_button_up(self, coord):
         """
-        Recupere la deuxieme coordonee d un coin du rectangle a tracer quand l utilisateur arrete de cliquer
+        Recupere la deuxieme coordonee d'un coin du rectangle a tracer quand l'utilisateur arrete de cliquer
         """
         if self.c1 is not None:
             coord = list(coord)
-            coord[1] = max(self.whiteboard.get_config(["toolbar_y"]), coord[1])# on ne veut pas depasser sur la toolbar
+            # on ne veut pas depasser sur la toolbar
+            coord[1] = max(self.whiteboard.get_config(["toolbar_y"]), coord[1])
             to_draw = Rectangle(self.c1, coord, self.whiteboard.get_config(["active_color"]))
             now = datetime.now()
             timestamp = datetime.timestamp(now)
@@ -298,7 +306,7 @@ class HandleRect(EventHandler):
 
     def handle_mouse_button_down(self, event):
         """
-        Recupere une coordonee d un coin du rectangle a tracer quand l utilisateur demarre un clic
+        Recupere une coordonee d'un coin du rectangle a tracer quand l'utilisateur démarre un clic
         """
         if event.dict["button"] != 1:
             return
@@ -320,7 +328,7 @@ class HandleRect(EventHandler):
 
 class HandleCircle(EventHandler):
     """
-    Classe du gestionnaire d evenement en mode Cercle
+    Classe du gestionnaire d'evenement en mode Cercle
     Nous avons decidé de faire un systeme de clic drag la-encore pour tracer un cercle
     """
     def __init__(self, whiteboard):
@@ -329,7 +337,7 @@ class HandleCircle(EventHandler):
 
     def handle_mouse_button_up(self, coord):
         """
-        Recupere la coordonee d un point sur le cercle quand l utilisateur arrete de cliquer
+        Recupere la coordonee d'un point sur le cercle quand l'utilisateur arrete de cliquer
         """
         if self.center is not None:
             coord = list(coord)
@@ -342,7 +350,7 @@ class HandleCircle(EventHandler):
 
     def handle_mouse_button_down(self, event):
         """
-        Recupere la coordonnee du centre du cercle quand l utilisateur demarre un clic
+        Recupere la coordonnee du centre du cercle quand l'utilisateur demarre un clic
         """
         if event.dict["button"] != 1:
             return
