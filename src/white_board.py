@@ -135,6 +135,7 @@ class WhiteBoard:
         self.load_actions(self._hist)
 
         self.__modification_allowed = ['client2', 'client1', 'client', client_name]
+        # if some client names are in this list, you will have the authorisation to edit their textboxes
 
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
