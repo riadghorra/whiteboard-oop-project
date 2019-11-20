@@ -133,6 +133,13 @@ class WhiteBoard:
 
         self.load_actions(self._hist)
 
+        self.__modification_allowed = ['client2', 'client', client_name]
+
+        for action in self._hist["actions"]:
+            if action["type"] == "Text_box":
+                if action['client'] in self.__modification_allowed:
+                    self.append_text_box(TextBox(**action["params"]))
+
     """
     Encapsulation
     """
@@ -323,6 +330,7 @@ class WhiteBoard:
             draw_line(action["params"], self.__screen)
         if action["type"] == "Text_box":
             draw_textbox(action["params"], self.__screen)
+            #self.append_text_box(TextBox(**action["params"]))
         if action["type"] == "rect":
             draw_rect(action["params"], self.__screen)
         if action["type"] == "circle":
@@ -400,6 +408,7 @@ class WhiteBoard:
                 # If we are in the first case, we add the new actions to history and draw them
                 if not matched:
                     self.add_to_hist(action)
+                    self.append_text_box(action)
                     self.draw_action(action)
                 # Update last_timestamp
                 if action["timestamp"] > new_last_timestamp:

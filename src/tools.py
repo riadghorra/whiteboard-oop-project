@@ -5,6 +5,7 @@ import pygame
 import pygame.draw
 from datetime import datetime
 from figures import Point, Line, TextBox, Rectangle, Circle
+import time
 
 
 # =============================================================================
@@ -224,6 +225,13 @@ class HandleText(EventHandler):
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
                     self.whiteboard.set_active_box(box, new=False)
+        elif event.dict["button"] == 2:
+            print("voici l'hist")
+            print(self.whiteboard.get_hist())
+            print("c'etait l'hist")
+            print("voici textboxes")
+            print(self.whiteboard.get_text_boxes())
+            print("c'était text boxes")
 
     def write_in_box(self, event):
         """
