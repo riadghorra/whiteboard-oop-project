@@ -8,4 +8,5 @@ drawing2 = {"message": "", 'actions': [{'type': 'Point', 'timestamp': 1571747340
                                         'params': {'x': 208, 'y': 438, 'w': 160, 'h': 32, 'box_color': [30, 30, 30],
                                                    'font': 'timesnewroman', 'font_size': 20,
                                                    'text': 'I am Mr Potato! <3', 'text_color': [0, 0, 0]},
-                                        'client': 'client'}]}
+                                        'client': 'client',
+                                        'owner': 'client'}]}

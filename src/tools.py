@@ -225,13 +225,9 @@ class HandleText(EventHandler):
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
                     self.whiteboard.set_active_box(box, new=False)
-        elif event.dict["button"] == 2:
-            print("voici l'hist")
-            print(self.whiteboard.get_hist())
-            print("c'etait l'hist")
-            print("voici textboxes")
-            print(self.whiteboard.get_text_boxes())
-            print("c'était text boxes")
+
+        elif event.dict["button"] ==2:
+            print(self.whiteboard._hist)
 
     def write_in_box(self, event):
         """
@@ -250,6 +246,13 @@ class HandleText(EventHandler):
                         now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
+                        action['client'] = self.whiteboard.name
+                        action_to_update_textbox = action
+                for textbox in self.whiteboard.get_text_boxes():
+                    if textbox.id_counter == id_counter:
+                        self.whiteboard.del_text_box(textbox)
+                        self.whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
+
                 # pour modifier la box il est malheureusement necessaire de re-render tout le tableau
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())
@@ -265,6 +268,12 @@ class HandleText(EventHandler):
                         now = datetime.now()
                         timestamp = datetime.timestamp(now)
                         action['timestamp'] = timestamp
+                        action['client'] = self.whiteboard.name
+                        action_to_update_textbox = action
+                for textbox in self.whiteboard.get_text_boxes():
+                    if textbox.id_counter == id_counter:
+                        self.whiteboard.del_text_box(textbox)
+                        self.whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
                 # on re-render tout aussi ici pour éviter de superposer des écritures
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())

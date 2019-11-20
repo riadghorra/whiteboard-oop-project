@@ -52,6 +52,7 @@ class Client(Thread):
             if action["id"] == textbox["id"]:
                 textbox["timestamp"] = action["timestamp"]
                 textbox["params"] = action["params"]
+                textbox["client"] = action["client"]
                 return True
         return False
 

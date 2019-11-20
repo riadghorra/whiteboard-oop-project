@@ -68,7 +68,8 @@ class WhiteBoard:
                         Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("circle", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+                        Mode("circle", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("auth", (5 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
         # If right and left boxes overlap, raise an error and close pygame
         try:
@@ -133,11 +134,11 @@ class WhiteBoard:
 
         self.load_actions(self._hist)
 
-        self.__modification_allowed = ['client2', 'client', client_name]
+        self.__modification_allowed = ['client2', 'client1', 'client', client_name]
 
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
-                if action['client'] in self.__modification_allowed:
+                if action['owner'] in self.__modification_allowed:
                     self.append_text_box(TextBox(**action["params"]))
 
     """
@@ -210,6 +211,10 @@ class WhiteBoard:
         self._draw = True
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def last_pos(self):
         return self._last_pos
 
@@ -233,6 +238,9 @@ class WhiteBoard:
     def append_text_box(self, textbox):
         self._text_boxes.append(textbox)
 
+    def del_text_box(self, textbox):
+        self._text_boxes.remove(textbox)
+
     def draw(self, obj, timestamp):
         """
         Method to draw figures defined in figures.py. Also adds drawn objects to history.
@@ -251,6 +259,7 @@ class WhiteBoard:
         # Special case if it's a Text_box object, we need to get the correct box id
         if hist_obj["type"] == "Text_box":
             hist_obj["id"] = obj.id_counter
+            hist_obj["owner"] = self._name
         self.add_to_hist(hist_obj)
 
     def switch_config(self, event):
@@ -330,7 +339,6 @@ class WhiteBoard:
             draw_line(action["params"], self.__screen)
         if action["type"] == "Text_box":
             draw_textbox(action["params"], self.__screen)
-            #self.append_text_box(TextBox(**action["params"]))
         if action["type"] == "rect":
             draw_rect(action["params"], self.__screen)
         if action["type"] == "circle":
@@ -382,7 +390,6 @@ class WhiteBoard:
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
             # Dict received from server
             new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
-
             # Initialize most recent timestamp
             new_last_timestamp = last_timestamp
 
@@ -400,6 +407,11 @@ class WhiteBoard:
                             # Modify it witht the newly acquired parameters from server
                             textbox["params"]["text"], textbox["params"]["w"] = action["params"]["text"], \
                                                                                 action["params"]["w"]
+                            action_to_update_textbox = action
+                            for element in self.get_text_boxes():
+                                if element.id_counter == action["id"]:
+                                    self.del_text_box(element)
+                                    self.append_text_box(TextBox(**action_to_update_textbox["params"]))
 
                             # Draw the modified text box with updated parameters
                             self.clear_screen()
@@ -408,7 +420,9 @@ class WhiteBoard:
                 # If we are in the first case, we add the new actions to history and draw them
                 if not matched:
                     self.add_to_hist(action)
-                    self.append_text_box(action)
+                    if action["type"] == "Text_box":
+                        if action['owner'] in self.__modification_allowed:
+                            self.append_text_box(TextBox(**action["params"]))
                     self.draw_action(action)
                 # Update last_timestamp
                 if action["timestamp"] > new_last_timestamp:
