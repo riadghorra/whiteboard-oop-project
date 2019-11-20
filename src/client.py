@@ -25,15 +25,16 @@ def main():
     Création d'un socket pour communiquer via un protocole TCP/IP
     """
     connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #Connexion au serveur
+    # Connexion au serveur
     connexion_avec_serveur.connect((hote, port))
     print("Connexion réussie avec le serveur")
 
     msg_recu = connexion_avec_serveur.recv(2 ** 24)
     msg_decode = binary_to_dict(msg_recu)
     hist = msg_decode
-    #Après réception de l'état du whiteboard, c'est à dire des figures et textboxes déjà dessinées par des utilisateurs
-    #précédents, le programme lance un whiteboard
+
+    # Après réception de l'état du whiteboard, c'est à dire des figures et textboxes déjà dessinées par des utilisateurs
+    # précédents, le programme lance un whiteboard
     whiteboard = WhiteBoard("client1", start_config, hist)
     whiteboard.start(connexion_avec_serveur)
 

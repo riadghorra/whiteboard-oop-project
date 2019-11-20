@@ -5,6 +5,7 @@ Module contenant toutes les figures et opérations de base
 import pygame
 import pygame.draw
 
+
 def distance(v1, v2):
     """
     Calcule la distance euclidienne entre deux vecteurs
@@ -14,6 +15,7 @@ def distance(v1, v2):
     except TypeError:
         return "Ce ne sont pas des vecteurs"
 
+
 class Point:
     """
     Classe d'un point prêt à être tracé sur le tableau
@@ -22,6 +24,7 @@ class Point:
     font_size (int) : epaisseur en pixels
     toolbar_size (int) : epaisseur de la toolbar en haut du tableau sur laquelle on ne veut pas que le point depasse
     """
+
     def __init__(self, coord, point_color, font_size, toolbar_size=0):
         self.point_color = point_color
         self.font_size = font_size
@@ -32,7 +35,7 @@ class Point:
 
     def draw(self, screen):
         """
-        Dessine le point sur l ecran
+        Dessine le point sur l'ecran
         """
         pygame.draw.circle(screen, self.point_color, self.coord, self.font_size)
         pygame.display.flip()
@@ -53,6 +56,7 @@ class Line:
     end_pos (list) : coordonee de la fin de la ligne droite
     font_size (int): epaisseur
     """
+
     def __init__(self, line_color, start_pos, end_pos, font_size):
         self.line_color = line_color
         self.start_pos = start_pos
@@ -82,6 +86,7 @@ class Rectangle:
     left, right (int) : coordonees d'absice a gauche, droite du rectangle
     bottom, top (int) : coordonees d'ordonnee en haut et en bas du rectangle
     """
+
     def __init__(self, c1, c2, color):
         """
         On definit les parametres du rectangle a partir des coordonees de deux coins
@@ -122,6 +127,7 @@ class Circle:
     toolbar_size (int) : la taille de la toolbar en pixel pour ne pas dessiner dessus
     radius (int) : rayon
     """
+
     def __init__(self, center, extremity, color, toolbar_size=0):
         self.center = center
         # on ne veut pas depasser sur la toolbar donc on reduit le rayon
@@ -155,6 +161,7 @@ class TextBox:
     text (string) : texte de la texbox
     text_color (list) : couleur du texte
     """
+
     def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
         self.__rect = pygame.Rect(x, y, w, h)
         self._color = box_color
@@ -230,6 +237,7 @@ class TextBox:
         # Blit le rectangle
         pygame.draw.rect(screen, self._color, self.__rect, 2)
 
+
 # =============================================================================
 # fonction de dessins instantanees
 # =============================================================================
@@ -245,6 +253,7 @@ def draw_point(params, screen):
     except TypeError:
         return "Parametres incorrect"
 
+
 def draw_line(params, screen):
     """
     dessine une ligne sur l'ecran avec les parametres d entree
@@ -255,6 +264,7 @@ def draw_line(params, screen):
         return Line(**params).draw(screen)
     except TypeError:
         return "Parametres incorrect"
+
 
 def draw_textbox(params, screen):
     """
@@ -267,6 +277,7 @@ def draw_textbox(params, screen):
     except TypeError:
         return "Parametres incorrect"
 
+
 def draw_rect(params, screen):
     """
     dessine un rectangle sur l'ecran avec les parametres d entree
@@ -277,6 +288,7 @@ def draw_rect(params, screen):
         return Rectangle(**params).draw(screen)
     except TypeError:
         return "Parametres incorrect"
+
 
 def draw_circle(params, screen):
     """

@@ -347,16 +347,18 @@ class WhiteBoard:
 
     def start(self, connexion_avec_serveur):
         """
+        Start and run a whiteboard window
 
         :param connexion_avec_serveur: socket to connect with server (socket.socket)
         :return:
         """
 
         # Take most recent timestamp in history
-        last_timestamp = max([x["timestamp"] for x in self._hist["actions"]])
-        # for action in self._hist["actions"]:
-        #     if action["timestamp"] > last_timestamp:
-        #         last_timestamp = action["timestamp"]
+        try:
+            last_timestamp = max([x["timestamp"] for x in self._hist["actions"]])
+        except ValueError:
+            last_timestamp = 0
+
         while not self.is_done():
 
             # Browse all events done by user

@@ -2,7 +2,8 @@ import socket
 import time
 from threading import Thread
 import json
-import initial_drawing
+
+# import initial_drawing
 
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
@@ -38,17 +39,33 @@ class Client(Thread):
 
     def __init__(self, hist, client_name=None):
         Thread.__init__(self)
-        self.client_name = client_name
-        self.done = False
-        self.current_hist = hist
+        self._client_name = client_name
+        self._done = False
+        self._current_hist = hist
+
+    """Encapsulation"""
+
+    def __get_client_name(self):
+        return self._client_name
+
+    def __set_client_name(self, c):
+        self._client_name = c
+
+    client_name = property(__get_client_name, __set_client_name)
+
+    def is_done(self):
+        return self._done
+
+    def end(self):
+        self._done = True
 
     def check_match(self, action):
         """
-        methode permettant de vérifier si une action est déjà existante dans l'objet self.current_hist.
+        methode permettant de vérifier si une action est déjà existante dans l'objet self._current_hist.
         Elle permet notamment de savoir si une textbox vient d'être rajoutée par un autre utilisateur du whiteboard ou
          si la textbox a simplement été mise à jour
         """
-        for textbox in [x for x in self.current_hist["actions"] if x["type"] == "Text_box"]:
+        for textbox in [x for x in self._current_hist["actions"] if x["type"] == "Text_box"]:
             if action["id"] == textbox["id"]:
                 textbox["timestamp"] = action["timestamp"]
                 textbox["params"] = action["params"]
@@ -59,9 +76,9 @@ class Client(Thread):
         """
         methode s'executant pour mettre fin à la connexion entre le serveur et un client
         """
-        self.done = True
+        self.end()
         print("Déconnexion d'un client")
-        self.current_hist["message"] = "end"
+        self._current_hist["message"] = "end"
 
     def run(self):
         """
@@ -75,35 +92,32 @@ class Client(Thread):
         last_timestamp = 0
         new_last_timestamp = 0
         try:
-            while not self.done:
-                msg_recu = self.nom.recv(2 ** 24)
+            while not self.is_done():
+                msg_recu = self.client_name.recv(2 ** 24)
                 new_hist = binary_to_dict(msg_recu)
-                if new_hist != self.current_hist:
+                if new_hist != self._current_hist:
                     for action in new_hist["actions"]:
                         if action["timestamp"] > last_timestamp:
                             # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
-                            if action["client"] != self.nom:
+                            if action["client"] != self.client_name:
                                 matched = False
                                 if action["type"] == "Text_box":
                                     matched = self.check_match(action)
                                 if not matched:
-                                    self.current_hist["actions"].append(action)
+                                    self._current_hist["actions"].append(action)
                             if action["timestamp"] > new_last_timestamp:
                                 new_last_timestamp = action["timestamp"]
                                 # La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les
                                 # actions
                     last_timestamp = new_last_timestamp
-                    if self.current_hist["message"] == "END":
+                    if self._current_hist["message"] == "END":
                         # S'éxécute si le client se déconnecte
                         self.disconnect_client()
                 time.sleep(0.01)
-                self.nom.send(dict_to_binary(self.current_hist))
-        except ConnectionAbortedError:
+                self.client_name.send(dict_to_binary(self._current_hist))
+        except (ConnectionAbortedError, ConnectionResetError) as e:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")
-
-    def setclient(self, c):
-        self.nom = c
 
 
 class Server:
@@ -162,7 +176,7 @@ class Server:
         client, infos_connexion = self.__connexion.accept()
         client.send(dict_to_binary(self.historique))
         new_thread = Client(self.historique)
-        new_thread.setclient(client)
+        new_thread.client_name = client
         self.add_client(new_thread)
 
     def run(self):
@@ -181,11 +195,11 @@ class Server:
                 self.remove_client(client)
                 self.add_thread(client)
             for thread in self.threadlaunched:
-                if thread.done:
+                if thread.is_done():
                     thread.join()
                     self.remove_thread(thread)
 
 
 if __name__ == '__main__':
-    server = Server(5001, '', initial_drawing.drawing2)
+    server = Server(5001, '')
     server.run()
