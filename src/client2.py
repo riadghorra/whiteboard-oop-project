@@ -1,5 +1,7 @@
 import socket
 import json
+import sys
+import math
 from white_board import WhiteBoard, binary_to_dict
 
 '''
@@ -29,7 +31,16 @@ def main():
     connexion_avec_serveur.connect((hote, port))
     print("Connexion réussie avec le serveur")
 
-    msg_recu = connexion_avec_serveur.recv(2 ** 24)
+    # First get the message size
+    msg_recu = connexion_avec_serveur.recv(2 ** 8)
+    message_size = binary_to_dict(msg_recu)["message_size"]
+
+    # Then get the message
+    msg_recu = connexion_avec_serveur.recv(2 ** int(math.log(message_size, 2) + 1))
+    total_size_received = sys.getsizeof(msg_recu)
+    while total_size_received < message_size:
+        msg_recu += connexion_avec_serveur.recv(2 ** int(math.log(message_size, 2) + 1))
+        total_size_received = sys.getsizeof(msg_recu)
     msg_decode = binary_to_dict(msg_recu)
     hist = msg_decode
 

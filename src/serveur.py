@@ -1,9 +1,10 @@
 import socket
+import sys
 import time
 from threading import Thread
 import json
 
-# import initial_drawing
+import initial_drawing
 
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
@@ -174,7 +175,10 @@ class Server:
     def scan_new_client(self):
         """Cette méthode permet de récupérer les informations du client entrant"""
         client, infos_connexion = self.__connexion.accept()
-        client.send(dict_to_binary(self.historique))
+        to_send = dict_to_binary(self.historique)
+        message_size = sys.getsizeof(to_send)
+        client.send(dict_to_binary({"message_size": message_size}))
+        client.send(to_send)
         new_thread = Client(self.historique)
         new_thread.client_name = client
         self.add_client(new_thread)
@@ -201,5 +205,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    server = Server(5001, '')
+    server = Server(5001, '', initial_drawing.drawing)
     server.run()
