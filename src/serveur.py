@@ -4,8 +4,6 @@ import time
 from threading import Thread
 import json
 
-import initial_drawing
-
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
 L'appel de ces dux fonctions permet d'échanger des dictionnaires par socket
@@ -38,21 +36,37 @@ class Client(Thread):
     C'est cet historique que le client va échanger avec le serveur
     """
 
-    def __init__(self, hist, client_name=None):
+    # Class level id for client
+    client_id = 1
+
+    def __init__(self, server_, client_socket=None):
         Thread.__init__(self)
-        self._client_name = client_name
+        self._client_socket = client_socket
         self._done = False
-        self._current_hist = hist
+        self._last_timestamp_sent = 0
+        self.server = server_
+
+        # Increment client id at each creation of instance
+        self.client_id = "Client" + str(Client.client_id)
+        Client.client_id += 1
 
     """Encapsulation"""
 
-    def __get_client_name(self):
-        return self._client_name
+    def __get_client_socket(self):
+        return self._client_socket
 
-    def __set_client_name(self, c):
-        self._client_name = c
+    def __set_client_socket(self, c):
+        self._client_socket = c
 
-    client_name = property(__get_client_name, __set_client_name)
+    client_socket = property(__get_client_socket, __set_client_socket)
+
+    def __get_last_timestamp_sent(self):
+        return self._last_timestamp_sent
+
+    def __set_last_timestamp_sent(self, c):
+        self._last_timestamp_sent = c
+
+    last_timestamp_sent = property(__get_last_timestamp_sent, __set_last_timestamp_sent)
 
     def is_done(self):
         return self._done
@@ -66,7 +80,7 @@ class Client(Thread):
         Elle permet notamment de savoir si une textbox vient d'être rajoutée par un autre utilisateur du whiteboard ou
          si la textbox a simplement été mise à jour
         """
-        for textbox in [x for x in self._current_hist["actions"] if x["type"] == "Text_box"]:
+        for textbox in [x for x in self.server.historique["actions"] if x["type"] == "Text_box"]:
             if action["id"] == textbox["id"]:
                 textbox["timestamp"] = action["timestamp"]
                 textbox["params"] = action["params"]
@@ -79,7 +93,7 @@ class Client(Thread):
         """
         self.end()
         print("Déconnexion d'un client")
-        self._current_hist["message"] = "end"
+        self.server.historique["message"] = "end"
 
     def run(self):
         """
@@ -90,32 +104,33 @@ class Client(Thread):
          où le whiboard était à jour.
         Toutes les nouvelles opérations sont ensuite envoyées au client
         """
-        last_timestamp = 0
-        new_last_timestamp = 0
         try:
             while not self.is_done():
-                msg_recu = self.client_name.recv(2 ** 24)
-                new_hist = binary_to_dict(msg_recu)
-                if new_hist != self._current_hist:
-                    for action in new_hist["actions"]:
-                        if action["timestamp"] > last_timestamp:
-                            # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
-                            if action["client"] != self.client_name:
-                                matched = False
-                                if action["type"] == "Text_box":
-                                    matched = self.check_match(action)
-                                if not matched:
-                                    self._current_hist["actions"].append(action)
-                            if action["timestamp"] > new_last_timestamp:
-                                new_last_timestamp = action["timestamp"]
-                                # La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les
-                                # actions
-                    last_timestamp = new_last_timestamp
-                    if self._current_hist["message"] == "END":
-                        # S'éxécute si le client se déconnecte
-                        self.disconnect_client()
+                msg_recu = self.client_socket.recv(2 ** 24)
+                new_actions = binary_to_dict(msg_recu)
+
+                # Go through each new action and add them to history and there are two cases : if it's an action on
+                # an already existing text box then modify it in history, else append the action to the history
+                for action in new_actions["actions"]:
+                    matched = False
+                    if action["type"] == "Text_box":
+                        matched = self.check_match(action)
+                    if not matched:
+                        self.server.historique["actions"].append(action)
+                if self.server.historique["message"] == "END":
+                    # S'éxécute si le client se déconnecte
+                    self.disconnect_client()
+
+                # Not to overload server
                 time.sleep(0.01)
-                self.client_name.send(dict_to_binary(self._current_hist))
+                actions_to_send = [x for x in self.server.historique["actions"] if
+                                   (x["timestamp"] > self.last_timestamp_sent and x["client"] != self.client_id)]
+                to_send = {"message": "", 'actions': actions_to_send}
+                self.client_socket.send(dict_to_binary(to_send))
+
+                # Update last timestamp if there is a new action
+                if actions_to_send:
+                    self.last_timestamp_sent = max([x["timestamp"] for x in actions_to_send])
         except (ConnectionAbortedError, ConnectionResetError) as e:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")
@@ -174,13 +189,32 @@ class Server:
 
     def scan_new_client(self):
         """Cette méthode permet de récupérer les informations du client entrant"""
+        # Get connexion info from server
         client, infos_connexion = self.__connexion.accept()
+
+        # Initialize a new client thread
+        new_thread = Client(self)
+
+        # Give them an id and send it to server
+        client_id = new_thread.client_id
+        client.send(dict_to_binary({"client_id": client_id}))
+
         to_send = dict_to_binary(self.historique)
+        # Get the size of history and send it because it can be too long
         message_size = sys.getsizeof(to_send)
         client.send(dict_to_binary({"message_size": message_size}))
+
+        # Wait a little for the previous message to not overlap with the next one
+        ## !!WARNING!! DEPENDING ON THE COMPUTER THIS SLEEP TIME MAY BE TOO SMALL, IF THE WHITEBOARD CRASHES, PLEASE
+        ## INCREASE IT
+        time.sleep(0.1)
         client.send(to_send)
-        new_thread = Client(self.historique)
-        new_thread.client_name = client
+        # Get the last timestamp sent to client
+        try:
+            new_thread.last_timestamp_sent = max([x["timestamp"] for x in self.historique["actions"]])
+        except ValueError:
+            new_thread.last_timestamp_sent = 0
+        new_thread.client_socket = client
         self.add_client(new_thread)
 
     def run(self):
@@ -205,5 +239,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    server = Server(5001, '', initial_drawing.drawing)
+    server = Server(5001, '')
     server.run()

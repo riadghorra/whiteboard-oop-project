@@ -353,11 +353,8 @@ class WhiteBoard:
         :return:
         """
 
-        # Take most recent timestamp in history
-        try:
-            last_timestamp = max([x["timestamp"] for x in self._hist["actions"]])
-        except ValueError:
-            last_timestamp = 0
+        # Initialize timestamp
+        last_timestamp_sent = 0
 
         while not self.is_done():
 
@@ -370,19 +367,21 @@ class WhiteBoard:
                 # Use specific handling method for current drawing mode
                 self.__handler[self.get_config(["mode"])].handle_all(event)
 
-            # msg_a_envoyer["message"] = "CARRY ON"
-            # Send dict history to server
-            message_a_envoyer = self.get_hist()
+            # Send dict history to server with new modifications
+            new_modifs = [modif for modif in self.get_hist()["actions"] if
+                          (modif["timestamp"] > last_timestamp_sent and self._name == modif["client"])]
+            message_a_envoyer = {"message": "", 'actions': new_modifs}
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
+
+            # Update last timestamp sent
+            if new_modifs:
+                last_timestamp_sent = max([modif["timestamp"] for modif in new_modifs])
+
             # Dict received from server
             new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
 
-            # Initialize most recent timestamp
-            new_last_timestamp = last_timestamp
-
             # Consider actions made by another client after new_last_timestamp
-            new_actions = [action for action in new_hist["actions"] if
-                           (action["timestamp"] > last_timestamp and action["client"] != self._name)]
+            new_actions = [action for action in new_hist["actions"] if action["client"] != self._name]
             for action in new_actions:
                 # Here there are two cases, a new figure (point, line, rect, circle, new text box) is created or an
                 # existing text box is modified. For this second case, we use the variable "matched" as indicator
@@ -391,7 +390,7 @@ class WhiteBoard:
                     # Find the text box id
                     for textbox in [x for x in self._hist["actions"] if x["type"] == "Text_box"]:
                         if action["id"] == textbox["id"]:
-                            # Modify it witht the newly acquired parameters from server
+                            # Modify it with the newly acquired parameters from server
                             textbox["params"]["text"], textbox["params"]["w"] = action["params"]["text"], \
                                                                                 action["params"]["w"]
 
@@ -403,12 +402,7 @@ class WhiteBoard:
                 if not matched:
                     self.add_to_hist(action)
                     self.draw_action(action)
-                # Update last_timestamp
-                if action["timestamp"] > new_last_timestamp:
-                    new_last_timestamp = action["timestamp"]
             pygame.display.flip()
-            # Update last_timestamp
-            last_timestamp = new_last_timestamp
 
         # Once we are done, we quit pygame and send end message
         pygame.quit()
