@@ -1,4 +1,5 @@
-drawing2 = {"message": "", 'actions': [{'type': 'Point', 'timestamp': 1571747340.659661,
+drawing2 = {"message": "", 'auth': ['client'],
+                           'actions': [{'type': 'Point', 'timestamp': 1571747340.659661,
                                         'params': {'coord': [406, 185], 'point_color': [0, 0, 255],
                                                    'font_size': 12}, 'client': 'client'},
                                        {'type': 'Point', 'timestamp': 1571747346.41509,

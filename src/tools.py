@@ -29,6 +29,34 @@ class TriggerBox:
         """
         return self.rect.collidepoint(event.pos)
 
+class Auth(TriggerBox):
+    """
+    Classe d'un bouton qui change l'autorisation de modification
+    """
+    def __init__(self, top_left, size):
+        TriggerBox.__init__(self, top_left, size)
+        self._size = size
+
+    def add(self, screen):
+        """
+        Dessine la authbox
+        """
+        pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
+        pygame.draw.circle(screen, [255, 0, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+        font = pygame.font.Font(None, 18)
+        legend = {"text": font.render("auth", True, [0, 0, 0]), "coords": self.coords}
+        screen.blit(legend["text"], legend["coords"])
+
+    def switch(self, screen, erasing_auth, modification_allowed, name):
+        if erasing_auth:
+            pygame.draw.circle(screen, [0, 255, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+            print("{} gave his auth".format(name))
+        else:
+            pygame.draw.circle(screen, [255, 0, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+            modification_allowed.remove(name)
+            print("{} removed his auth".format(name))
+        return modification_allowed
+
 
 class Mode(TriggerBox):
     """

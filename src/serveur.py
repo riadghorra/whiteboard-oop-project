@@ -3,6 +3,7 @@ import time
 from threading import Thread
 import json
 import initial_drawing
+import copy
 
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
@@ -79,6 +80,7 @@ class Client(Thread):
             while not self.done:
                 msg_recu = self.nom.recv(2 ** 24)
                 new_hist = binary_to_dict(msg_recu)
+                print(new_hist["auth"])
                 if new_hist != self.current_hist:
                     for action in new_hist["actions"]:
                         if action["timestamp"] > last_timestamp:
@@ -97,8 +99,14 @@ class Client(Thread):
                     if self.current_hist["message"] == "END":
                         # S'éxécute si le client se déconnecte
                         self.disconnect_client()
-                time.sleep(0.01)
+                    if new_hist["auth"] != self.current_hist["auth"]:
+                        print("new hist is {}".format(new_hist["auth"]))
+                        print("current hist is {}".format(self.current_hist["auth"]))
+                        self.current_hist["auth"] = copy.deepcopy(new_hist["auth"])
+                        print("current hist is {}".format(self.current_hist["auth"]))
+                time.sleep(0.1)
                 self.nom.send(dict_to_binary(self.current_hist))
+
         except ConnectionAbortedError:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")

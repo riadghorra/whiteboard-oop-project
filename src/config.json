@@ -1,12 +1,13 @@
 {
   "board_background_color": [255, 255, 255],
   "width": 900,
-  "length": 800,
+  "length": 700,
   "toolbar_y": 45,
   "active_color": [0, 0, 0],
   "font_size": 5,
   "mode" : "point",
   "mode_box_size" : [45,45],
+  "auth_box_size" : [45,45],
   "color_palette": {
     "white" : [255, 255, 255],
     "black" : [0, 0, 0],

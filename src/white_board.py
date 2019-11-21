@@ -5,7 +5,8 @@ import sys
 from functools import reduce
 import operator
 from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect, draw_circle
-from tools import Mode, ColorBox, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
+from tools import Mode, ColorBox, Auth, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
+import copy
 
 '''
 Ouverture de la configuration initiale
@@ -40,7 +41,7 @@ class WhiteBoard:
         if not isinstance(start_config, dict):
             raise TypeError("Starting configuration file must be a dictionary")
         if start_hist is None:
-            start_hist = {"actions": []}
+            start_hist = {"actions": [], "message": [], "auth": []}
         elif not isinstance(start_hist, dict):
             raise TypeError("Starting history file must be a dictionary")
 
@@ -61,15 +62,35 @@ class WhiteBoard:
 
         # We create a global variable to keep track of the position of the last mode box we create in order to make
         # sure that there is no overlapping between left and right boxes on the toolbar on the toolbar
+
+        """
+        Tracé de la box auth
+        """
+
+
         last_left_position = 0
         last_right_position = self._config["width"] - self._config["mode_box_size"][0]
+        self._erasing_auth = False
 
-        self.__modes = [Mode("point", (0, 0), tuple(self._config["mode_box_size"])),
-                        Mode("line", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("text", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("rect", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("circle", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("auth", (5 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+        try:
+            assert last_left_position < last_right_position + 1, "Too many tools to fit in the Whiteboard " \
+                                                                 "toolbar, please increase width in config.json"
+            self.__auth_box = Auth((last_left_position, 0), tuple(self._config["auth_box_size"]))
+            last_left_position += self._config["mode_box_size"][0]
+            self.__auth_box.add(self.__screen)
+        except AssertionError as e:
+            print(e)
+            pygame.quit()
+            sys.exit()
+
+
+
+
+        self.__modes = [Mode("point", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("line", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("text", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("rect", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("circle", (5 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
         # If right and left boxes overlap, raise an error and close pygame
         try:
@@ -131,16 +152,23 @@ class WhiteBoard:
         self._text_boxes = []
 
         self.active_box = None
-
+        print('line 154 {}'.format(self._hist["auth"]))
         self.load_actions(self._hist)
+        print('line 156 {}'.format(self._hist["auth"]))
+        self.__modification_allowed = copy.deepcopy(self._hist["auth"])
+        if self.name not in self.__modification_allowed:
+            print('line 159 {}'.format(self._hist["auth"]))
+            self.__modification_allowed.append(self.name)
+            print('line 161 {}'.format(self._hist["auth"]))
 
-        self.__modification_allowed = ['client2', 'client1', 'client', client_name]
         # if some client names are in this list, you will have the authorisation to edit their textboxes
 
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
                 if action['owner'] in self.__modification_allowed:
                     self.append_text_box(TextBox(**action["params"]))
+
+        print('line 170 {}'.format(self._hist["auth"]))
 
     """
     Encapsulation
@@ -285,6 +313,10 @@ class WhiteBoard:
             for font_size_ in self.__font_sizes:
                 if font_size_.is_triggered(event):
                     self.set_config(["font_size"], font_size_.font_size)
+            if self.__auth_box.is_triggered(event):
+                self._erasing_auth = not self._erasing_auth
+                self._hist["auth"] = copy.deepcopy(self.__auth_box.switch(self.__screen, self._erasing_auth, self.__modification_allowed, self._name))
+                print("{}, auth = {}".format(self._hist["auth"],self._erasing_auth))
 
     def set_active_box(self, box, new=True):
         """
@@ -384,13 +416,16 @@ class WhiteBoard:
                     break
                 # Use specific handling method for current drawing mode
                 self.__handler[self.get_config(["mode"])].handle_all(event)
+                print("l 419 {}".format(self._hist["auth"]))
 
             # msg_a_envoyer["message"] = "CARRY ON"
             # Send dict history to server
             message_a_envoyer = self.get_hist()
+            print("l 424 {}".format(message_a_envoyer["auth"]))
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
             # Dict received from server
             new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
+            print("l 428 {}".format(new_hist["auth"]))
             # Initialize most recent timestamp
             new_last_timestamp = last_timestamp
 
@@ -428,6 +463,17 @@ class WhiteBoard:
                 # Update last_timestamp
                 if action["timestamp"] > new_last_timestamp:
                     new_last_timestamp = action["timestamp"]
+            print("l 466 {}".format(new_hist["auth"]))
+            if new_hist["auth"] != self._hist["auth"]:
+                print("new hist is {}".format(new_hist["auth"]))
+                print("hist is {}".format(self._hist["auth"]))
+                self.__modification_allowed = copy.deepcopy(new_hist["auth"])
+                self._hist["auth"] = new_hist["auth"]
+                print("hist is now {}".format(self._hist["auth"]))
+            if self.name not in self.__modification_allowed:
+                print("l 474 {}".format(self._hist["auth"]))
+                self.__modification_allowed.append(self.name)
+            print("l 476 {}".format(self._hist["auth"]))
             pygame.display.flip()
             # Update last_timestamp
             last_timestamp = new_last_timestamp
