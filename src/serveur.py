@@ -38,22 +38,26 @@ class Client(Thread):
     C'est cet historique que le client va échanger avec le serveur
     """
 
-    def __init__(self, server, client_name=None):
+    client_id = 1
+
+    def __init__(self, server, client_socket=None):
         Thread.__init__(self)
-        self._client_name = client_name
+        self._client_socket = client_socket
         self._done = False
         self._last_timestamp_sent = 0
         self.server = server
+        self.client_id = "Client" + str(Client.client_id)
+        Client.client_id += 1
 
     """Encapsulation"""
 
-    def __get_client_name(self):
-        return self._client_name
+    def __get_client_socket(self):
+        return self._client_socket
 
-    def __set_client_name(self, c):
-        self._client_name = c
+    def __set_client_socket(self, c):
+        self._client_socket = c
 
-    client_name = property(__get_client_name, __set_client_name)
+    client_socket = property(__get_client_socket, __set_client_socket)
 
     def __get_last_timestamp_sent(self):
         return self._last_timestamp_sent
@@ -102,7 +106,7 @@ class Client(Thread):
         new_last_timestamp = 0
         try:
             while not self.is_done():
-                msg_recu = self.client_name.recv(2 ** 24)
+                msg_recu = self.client_socket.recv(2 ** 24)
                 new_actions = binary_to_dict(msg_recu)
 
                 if new_actions["actions"]:
@@ -112,7 +116,7 @@ class Client(Thread):
                 for action in new_actions["actions"]:
                     # if action["timestamp"] > self._last_timestamp_sent:
                     # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
-                    # if action["client"] != self.client_name:
+                    # if action["client"] != self.client_socket:
                     matched = False
                     if action["type"] == "Text_box":
                         matched = self.check_match(action)
@@ -128,9 +132,10 @@ class Client(Thread):
                     self.disconnect_client()
                 time.sleep(0.01)
                 actions_to_send = [x for x in self.server.historique["actions"] if
-                                   x["timestamp"] > self.last_timestamp_sent]
+                                   (x["timestamp"] > self.last_timestamp_sent and x["client"] != self.client_id)]
                 to_send = {"message": "", 'actions': actions_to_send}
-                self.client_name.send(dict_to_binary(to_send))
+                # print(self.client_id, "to_send", to_send)
+                self.client_socket.send(dict_to_binary(to_send))
                 try:
                     self.last_timestamp_sent = max([x["timestamp"] for x in actions_to_send])
                 except ValueError:
@@ -194,14 +199,19 @@ class Server:
     def scan_new_client(self):
         """Cette méthode permet de récupérer les informations du client entrant"""
         client, infos_connexion = self.__connexion.accept()
+        new_thread = Client(self)
+        client_id = new_thread.client_id
+        client.send(dict_to_binary({"client_id": client_id}))
         to_send = dict_to_binary(self.historique)
         message_size = sys.getsizeof(to_send)
         client.send(dict_to_binary({"message_size": message_size}))
         client.send(to_send)
-        new_thread = Client(self)
         # Get the last timestamp sent to client
-        new_thread.last_timestamp_sent = max([x["timestamp"] for x in self.historique["actions"]])
-        new_thread.client_name = client
+        try:
+            new_thread.last_timestamp_sent = max([x["timestamp"] for x in self.historique["actions"]])
+        except ValueError:
+            new_thread.last_timestamp_sent = 0
+        new_thread.client_socket = client
         self.add_client(new_thread)
 
     def run(self):
@@ -226,5 +236,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    server = Server(5001, '', initial_drawing.drawing)
+    server = Server(5001, '')
     server.run()

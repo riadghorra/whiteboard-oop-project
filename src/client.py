@@ -31,7 +31,10 @@ def main():
     connexion_avec_serveur.connect((hote, port))
     print("Connexion réussie avec le serveur")
 
-    # First get the message size
+    # First get the client id
+    username = binary_to_dict(connexion_avec_serveur.recv(2**16))["client_id"]
+
+    # Second get the message size
     msg_recu = connexion_avec_serveur.recv(2 ** 8)
     message_size = binary_to_dict(msg_recu)["message_size"]
 
@@ -46,7 +49,7 @@ def main():
 
     # Après réception de l'état du whiteboard, c'est à dire des figures et textboxes déjà dessinées par des utilisateurs
     # précédents, le programme lance un whiteboard
-    whiteboard = WhiteBoard("client1", start_config, hist)
+    whiteboard = WhiteBoard(username, start_config, hist)
     whiteboard.start(connexion_avec_serveur)
 
 
