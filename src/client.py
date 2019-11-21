@@ -32,15 +32,17 @@ def main():
     print("Connexion réussie avec le serveur")
 
     # First get the client id
-    username = binary_to_dict(connexion_avec_serveur.recv(2**16))["client_id"]
+    username = binary_to_dict(connexion_avec_serveur.recv(2 ** 16))["client_id"]
 
     # Second get the message size
     msg_recu = connexion_avec_serveur.recv(2 ** 8)
     message_size = binary_to_dict(msg_recu)["message_size"]
 
-    # Then get the message
+    # Then get the first chunk of history using the number of byte equal to the power of 2 just above its size
     msg_recu = connexion_avec_serveur.recv(2 ** int(math.log(message_size, 2) + 1))
     total_size_received = sys.getsizeof(msg_recu)
+
+    # One we get the first chunk, we loop until we get the whole history
     while total_size_received < message_size:
         msg_recu += connexion_avec_serveur.recv(2 ** int(math.log(message_size, 2) + 1))
         total_size_received = sys.getsizeof(msg_recu)

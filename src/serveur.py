@@ -4,8 +4,6 @@ import time
 from threading import Thread
 import json
 
-import initial_drawing
-
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
 L'appel de ces dux fonctions permet d'échanger des dictionnaires par socket
@@ -38,14 +36,17 @@ class Client(Thread):
     C'est cet historique que le client va échanger avec le serveur
     """
 
+    # Class level id for client
     client_id = 1
 
-    def __init__(self, server, client_socket=None):
+    def __init__(self, server_, client_socket=None):
         Thread.__init__(self)
         self._client_socket = client_socket
         self._done = False
         self._last_timestamp_sent = 0
-        self.server = server
+        self.server = server_
+
+        # Increment client id at each creation of instance
         self.client_id = "Client" + str(Client.client_id)
         Client.client_id += 1
 
@@ -103,43 +104,33 @@ class Client(Thread):
          où le whiboard était à jour.
         Toutes les nouvelles opérations sont ensuite envoyées au client
         """
-        new_last_timestamp = 0
         try:
             while not self.is_done():
                 msg_recu = self.client_socket.recv(2 ** 24)
                 new_actions = binary_to_dict(msg_recu)
 
-                if new_actions["actions"]:
-                    new_last_timestamp = max([action["timestamp"] for action in new_actions["actions"]])
-
-                # if new_last_timestamp > self._last_timestamp_sent:
+                # Go through each new action and add them to history and there are two cases : if it's an action on
+                # an already existing text box then modify it in history, else append the action to the history
                 for action in new_actions["actions"]:
-                    # if action["timestamp"] > self._last_timestamp_sent:
-                    # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
-                    # if action["client"] != self.client_socket:
                     matched = False
                     if action["type"] == "Text_box":
                         matched = self.check_match(action)
                     if not matched:
                         self.server.historique["actions"].append(action)
-                    # if action["timestamp"] > new_last_timestamp:
-                    # new_last_timestamp = action["timestamp"]
-                    # La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les
-                    # actions
-                # self.last_timestamp_sent = new_last_timestamp
                 if self.server.historique["message"] == "END":
                     # S'éxécute si le client se déconnecte
                     self.disconnect_client()
+
+                # Not to overload server
                 time.sleep(0.01)
                 actions_to_send = [x for x in self.server.historique["actions"] if
                                    (x["timestamp"] > self.last_timestamp_sent and x["client"] != self.client_id)]
                 to_send = {"message": "", 'actions': actions_to_send}
-                # print(self.client_id, "to_send", to_send)
                 self.client_socket.send(dict_to_binary(to_send))
-                try:
+
+                # Update last timestamp if there is a new action
+                if actions_to_send:
                     self.last_timestamp_sent = max([x["timestamp"] for x in actions_to_send])
-                except ValueError:
-                    pass
         except (ConnectionAbortedError, ConnectionResetError) as e:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")
@@ -198,14 +189,25 @@ class Server:
 
     def scan_new_client(self):
         """Cette méthode permet de récupérer les informations du client entrant"""
+        # Get connexion info from server
         client, infos_connexion = self.__connexion.accept()
+
+        # Initialize a new client thread
         new_thread = Client(self)
+
+        # Give them an id and send it to server
         client_id = new_thread.client_id
         client.send(dict_to_binary({"client_id": client_id}))
+
         to_send = dict_to_binary(self.historique)
+        # Get the size of history and send it because it can be too long
         message_size = sys.getsizeof(to_send)
         client.send(dict_to_binary({"message_size": message_size}))
-        time.sleep(0.01)
+
+        # Wait a little for the previous message to not overlap with the next one
+        ## !!WARNING!! DEPENDING ON THE COMPUTER THIS SLEEP TIME MAY BE TOO SMALL, IF THE WHITEBOARD CRASHES, PLEASE
+        ## INCREASE IT
+        time.sleep(0.1)
         client.send(to_send)
         # Get the last timestamp sent to client
         try:
