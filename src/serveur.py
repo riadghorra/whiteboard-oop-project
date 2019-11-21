@@ -205,6 +205,7 @@ class Server:
         to_send = dict_to_binary(self.historique)
         message_size = sys.getsizeof(to_send)
         client.send(dict_to_binary({"message_size": message_size}))
+        time.sleep(0.01)
         client.send(to_send)
         # Get the last timestamp sent to client
         try:
