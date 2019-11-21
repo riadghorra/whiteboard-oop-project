@@ -38,11 +38,12 @@ class Client(Thread):
     C'est cet historique que le client va échanger avec le serveur
     """
 
-    def __init__(self, hist, client_name=None):
+    def __init__(self, server, client_name=None):
         Thread.__init__(self)
         self._client_name = client_name
         self._done = False
-        self._current_hist = hist
+        self._last_timestamp_sent = 0
+        self.server = server
 
     """Encapsulation"""
 
@@ -53,6 +54,14 @@ class Client(Thread):
         self._client_name = c
 
     client_name = property(__get_client_name, __set_client_name)
+
+    def __get_last_timestamp_sent(self):
+        return self._last_timestamp_sent
+
+    def __set_last_timestamp_sent(self, c):
+        self._last_timestamp_sent = c
+
+    last_timestamp_sent = property(__get_last_timestamp_sent, __set_last_timestamp_sent)
 
     def is_done(self):
         return self._done
@@ -66,7 +75,7 @@ class Client(Thread):
         Elle permet notamment de savoir si une textbox vient d'être rajoutée par un autre utilisateur du whiteboard ou
          si la textbox a simplement été mise à jour
         """
-        for textbox in [x for x in self._current_hist["actions"] if x["type"] == "Text_box"]:
+        for textbox in [x for x in self.server.historique["actions"] if x["type"] == "Text_box"]:
             if action["id"] == textbox["id"]:
                 textbox["timestamp"] = action["timestamp"]
                 textbox["params"] = action["params"]
@@ -79,7 +88,7 @@ class Client(Thread):
         """
         self.end()
         print("Déconnexion d'un client")
-        self._current_hist["message"] = "end"
+        self.server.historique["message"] = "end"
 
     def run(self):
         """
@@ -90,32 +99,42 @@ class Client(Thread):
          où le whiboard était à jour.
         Toutes les nouvelles opérations sont ensuite envoyées au client
         """
-        last_timestamp = 0
         new_last_timestamp = 0
         try:
             while not self.is_done():
                 msg_recu = self.client_name.recv(2 ** 24)
-                new_hist = binary_to_dict(msg_recu)
-                if new_hist != self._current_hist:
-                    for action in new_hist["actions"]:
-                        if action["timestamp"] > last_timestamp:
-                            # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
-                            if action["client"] != self.client_name:
-                                matched = False
-                                if action["type"] == "Text_box":
-                                    matched = self.check_match(action)
-                                if not matched:
-                                    self._current_hist["actions"].append(action)
-                            if action["timestamp"] > new_last_timestamp:
-                                new_last_timestamp = action["timestamp"]
-                                # La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les
-                                # actions
-                    last_timestamp = new_last_timestamp
-                    if self._current_hist["message"] == "END":
-                        # S'éxécute si le client se déconnecte
-                        self.disconnect_client()
+                new_actions = binary_to_dict(msg_recu)
+
+                if new_actions["actions"]:
+                    new_last_timestamp = max([action["timestamp"] for action in new_actions["actions"]])
+
+                # if new_last_timestamp > self._last_timestamp_sent:
+                for action in new_actions["actions"]:
+                    # if action["timestamp"] > self._last_timestamp_sent:
+                    # S'exécute si l'action est une nouvelle action faite par un autre utilisateur
+                    # if action["client"] != self.client_name:
+                    matched = False
+                    if action["type"] == "Text_box":
+                        matched = self.check_match(action)
+                    if not matched:
+                        self.server.historique["actions"].append(action)
+                    # if action["timestamp"] > new_last_timestamp:
+                    # new_last_timestamp = action["timestamp"]
+                    # La ligne précédente permet de récupérer le nouveau max des timestamp de toutes les
+                    # actions
+                # self.last_timestamp_sent = new_last_timestamp
+                if self.server.historique["message"] == "END":
+                    # S'éxécute si le client se déconnecte
+                    self.disconnect_client()
                 time.sleep(0.01)
-                self.client_name.send(dict_to_binary(self._current_hist))
+                actions_to_send = [x for x in self.server.historique["actions"] if
+                                   x["timestamp"] > self.last_timestamp_sent]
+                to_send = {"message": "", 'actions': actions_to_send}
+                self.client_name.send(dict_to_binary(to_send))
+                try:
+                    self.last_timestamp_sent = max([x["timestamp"] for x in actions_to_send])
+                except ValueError:
+                    pass
         except (ConnectionAbortedError, ConnectionResetError) as e:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")
@@ -179,7 +198,9 @@ class Server:
         message_size = sys.getsizeof(to_send)
         client.send(dict_to_binary({"message_size": message_size}))
         client.send(to_send)
-        new_thread = Client(self.historique)
+        new_thread = Client(self)
+        # Get the last timestamp sent to client
+        new_thread.last_timestamp_sent = max([x["timestamp"] for x in self.historique["actions"]])
         new_thread.client_name = client
         self.add_client(new_thread)
 
