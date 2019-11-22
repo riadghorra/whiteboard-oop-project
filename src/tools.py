@@ -18,6 +18,7 @@ class TriggerBox:
     top_left (list) : coordonees du pixel en haut a gauche
     size (int) : taille en pixel du cote du carre
     """
+
     def __init__(self, top_left, size):
         self.rect = pygame.Rect(top_left, size)
         self.coords = top_left
@@ -63,6 +64,7 @@ class Mode(TriggerBox):
     Classe d'un mode de dessin du tableau dans lequel on peut rentrer via la triggerbox dont il herite
     name (string) : nom du mode qui sera inscrit dans sa triggerbox sur l'ecran
     """
+
     def __init__(self, name, top_left, size):
         super(Mode, self).__init__(top_left, size)
         self.name = name
@@ -82,6 +84,7 @@ class ColorBox(TriggerBox):
     Classe d'une triggerbox de choix de couleur sur l'ecran
     color (list) : color of the box
     """
+
     def __init__(self, color, top_left, size):
         super(ColorBox, self).__init__(top_left, size)
         self.color = color
@@ -98,10 +101,12 @@ class FontSizeBox(TriggerBox):
     Classe des triggerbox de choix de l'epaisseur du trait
     font_size (int) : epaisseur du trait en pixel
     """
+
     def __init__(self, font_size, top_left, size):
         super(FontSizeBox, self).__init__(top_left, size)
         self.font_size = font_size
-        self.center = [top_left[0] + size[0] // 2, top_left[1] + size[1] // 2]#pour dessiner un cercle representant l epaisseur de selection
+        self.center = [top_left[0] + size[0] // 2,
+                       top_left[1] + size[1] // 2]  # pour dessiner un cercle representant l epaisseur de selection
 
     def add(self, screen):
         """
@@ -109,6 +114,7 @@ class FontSizeBox(TriggerBox):
         """
         pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
         pygame.draw.circle(screen, [0, 0, 0], self.center, self.font_size)
+
 
 # =============================================================================
 # classes de gestion des evenements utilisateur
@@ -119,6 +125,7 @@ class EventHandler:
     Classe mere des gestionnaires d'evenements utilisateur en fontcion des modes
     whiteboard : classe whiteboard sur laquelle notre handler va gerer les evenements utilisateur
     """
+
     def __init__(self, whiteboard):
         self.whiteboard = whiteboard
 
@@ -143,6 +150,7 @@ class HandlePoint(EventHandler):
     """
     Classe du gestionnaire d'evenement en mode point
     """
+
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
 
@@ -171,6 +179,7 @@ class HandleLine(EventHandler):
     """
     Classe du gestionnaire d'evenement en mode ligne
     """
+
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
 
@@ -225,6 +234,7 @@ class HandleText(EventHandler):
     """
     Classe du gestionnaire d'evenement en mode textbox
     """
+
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
 
@@ -331,6 +341,7 @@ class HandleRect(EventHandler):
     Classe du gestionnaire d'evenement en mode rectangle
     Nous avons decidé de faire un systeme de clic drag pour tracer un rectangle
     """
+
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
         self.c1 = None
@@ -376,6 +387,7 @@ class HandleCircle(EventHandler):
     Classe du gestionnaire d'evenement en mode Cercle
     Nous avons decidé de faire un systeme de clic drag la-encore pour tracer un cercle
     """
+
     def __init__(self, whiteboard):
         EventHandler.__init__(self, whiteboard)
         self.center = None
