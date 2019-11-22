@@ -160,8 +160,7 @@ class WhiteBoard:
 
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
-                if action['owner'] in self.__modification_allowed or action['owner'] == self._name:
-                    self.append_text_box(TextBox(**action["params"]))
+                self.append_text_box(TextBox(**action["params"]))
 
         print('line 170 {}'.format(self._hist["auth"]))
 
@@ -237,6 +236,10 @@ class WhiteBoard:
     @property
     def name(self):
         return self._name
+
+    @property
+    def modification_allowed(self):
+        return self.__modification_allowed
 
     @property
     def last_pos(self):
@@ -456,8 +459,7 @@ class WhiteBoard:
                 if not matched:
                     self.add_to_hist(action)
                     if action["type"] == "Text_box":
-                        if action['owner'] in self.__modification_allowed or action["owner"] == self._name:
-                            self.append_text_box(TextBox(**action["params"]))
+                        self.append_text_box(TextBox(**action["params"]))
                     self.draw_action(action)
             if self._name in new_hist["auth"]:
                 new_hist["auth"].remove(self._name)

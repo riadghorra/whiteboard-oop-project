@@ -274,20 +274,7 @@ class HandleText(EventHandler):
 
             # on efface un caractere
             if event.key == pygame.K_BACKSPACE:
-                self.whiteboard.active_box.delete_char_from_text()
-                id_counter = self.whiteboard.active_box.id_counter
-                for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
-                    if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
-                        now = datetime.now()
-                        timestamp = datetime.timestamp(now)
-                        action['timestamp'] = timestamp
-                        action['client'] = self.whiteboard.name
-                        action_to_update_textbox = action
-                for textbox in self.whiteboard.get_text_boxes():
-                    if textbox.id_counter == id_counter:
-                        self.whiteboard.del_text_box(textbox)
-                        self.whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
+                self.whiteboard.active_box.delete_char_from_text(self.whiteboard)
 
                 # pour modifier la box il est malheureusement necessaire de re-render tout le tableau
                 self.whiteboard.clear_screen()
@@ -295,21 +282,8 @@ class HandleText(EventHandler):
             elif event.key == pygame.K_TAB or event.key == pygame.K_RETURN:
                 pass
             else:
-                self.whiteboard.active_box.add_character_to_text(event.unicode)
-                id_counter = self.whiteboard.active_box.id_counter
-                for action in [x for x in self.whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
-                    if action['id'] == id_counter:
-                        action['params']["text"] = self.whiteboard.active_box.get_textbox_text()
-                        action['params']["w"] = self.whiteboard.active_box.update()
-                        now = datetime.now()
-                        timestamp = datetime.timestamp(now)
-                        action['timestamp'] = timestamp
-                        action['client'] = self.whiteboard.name
-                        action_to_update_textbox = action
-                for textbox in self.whiteboard.get_text_boxes():
-                    if textbox.id_counter == id_counter:
-                        self.whiteboard.del_text_box(textbox)
-                        self.whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
+                self.whiteboard.active_box.add_character_to_text(event.unicode, self.whiteboard)
+
                 # on re-render tout aussi ici pour éviter de superposer des écritures
                 self.whiteboard.clear_screen()
                 self.whiteboard.load_actions(self.whiteboard.get_hist())

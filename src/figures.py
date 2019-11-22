@@ -4,6 +4,7 @@ Module contenant toutes les figures et opérations de base
 
 import pygame
 import pygame.draw
+from datetime import datetime
 
 
 def distance(v1, v2):
@@ -195,17 +196,56 @@ class TextBox:
     def get_textbox_text(self):
         return self._text
 
-    def add_character_to_text(self, char):
+    def add_character_to_text(self, char, whiteboard):
         """
         rajoute un caractere au texte
         """
-        self._text += char
 
-    def delete_char_from_text(self):
+        id_counter = whiteboard.active_box.id_counter
+        for action in [x for x in whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
+            if action['id'] == id_counter:
+                if action['owner'] in whiteboard.modification_allowed or action['owner'] == whiteboard.name:
+                    self._text += char
+                    action['params']["text"] = whiteboard.active_box.get_textbox_text()
+                    action['params']["w"] = whiteboard.active_box.update()
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    action['timestamp'] = timestamp
+                    action['client'] = whiteboard.name
+                    action_to_update_textbox = action
+        for textbox in whiteboard.get_text_boxes():
+            if textbox.id_counter == id_counter:
+                if action['owner'] in whiteboard.modification_allowed or action['owner'] == whiteboard.name:
+                    whiteboard.del_text_box(textbox)
+                    try:
+                        whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
+                    except UnboundLocalError:
+                        print('Something unexpected happened. A textbox update may have failed')
+
+    def delete_char_from_text(self, whiteboard):
         """
         efface le dernier caractere du texte
         """
-        self._text = self._text[:-1]
+
+        id_counter = whiteboard.active_box.id_counter
+        for action in [x for x in whiteboard.get_hist('actions') if x['type'] == 'Text_box']:
+            if action['id'] == id_counter:
+                if action['owner'] in whiteboard.modification_allowed or action['owner'] == whiteboard.name:
+                    self._text = self._text[:-1]
+                    action['params']["text"] = whiteboard.active_box.get_textbox_text()
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    action['timestamp'] = timestamp
+                    action['client'] = whiteboard.name
+                    action_to_update_textbox = action
+        for textbox in whiteboard.get_text_boxes():
+            if textbox.id_counter == id_counter:
+                if action['owner'] in whiteboard.modification_allowed or action['owner'] == whiteboard.name:
+                    whiteboard.del_text_box(textbox)
+                    try:
+                        whiteboard.append_text_box(TextBox(**action_to_update_textbox["params"]))
+                    except UnboundLocalError:
+                        print('Something unexpected happened. A textbox update may have failed')
 
     def render_font(self, text, color, antialias=True):
         """
