@@ -264,8 +264,6 @@ class HandleText(EventHandler):
                 if box.rect.collidepoint(event.pos):
                     self.whiteboard.set_active_box(box, new=False)
 
-        elif event.dict["button"] ==2:
-            print(self.whiteboard._hist)
 
     def write_in_box(self, event):
         """
