@@ -156,16 +156,12 @@ class WhiteBoard:
         self.load_actions(self._hist)
         print('line 156 {}'.format(self._hist["auth"]))
         self.__modification_allowed = copy.deepcopy(self._hist["auth"])
-        if self.name not in self.__modification_allowed:
-            print('line 159 {}'.format(self._hist["auth"]))
-            self.__modification_allowed.append(self.name)
-            print('line 161 {}'.format(self._hist["auth"]))
 
         # if some client names are in this list, you will have the authorisation to edit their textboxes
 
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
-                if action['owner'] in self.__modification_allowed:
+                if action['owner'] in self.__modification_allowed or action['owner'] == self._name:
                     self.append_text_box(TextBox(**action["params"]))
 
         print('line 170 {}'.format(self._hist["auth"]))
@@ -315,8 +311,8 @@ class WhiteBoard:
                     self.set_config(["font_size"], font_size_.font_size)
             if self.__auth_box.is_triggered(event):
                 self._erasing_auth = not self._erasing_auth
-                self._hist["auth"] = copy.deepcopy(self.__auth_box.switch(self.__screen, self._erasing_auth, self.__modification_allowed, self._name))
-                print("{}, auth = {}".format(self._hist["auth"],self._erasing_auth))
+                self.__auth_box.switch(self.__screen, self._erasing_auth, self.__modification_allowed, self._name)
+                self._hist["auth"] = [self._name, self._erasing_auth]
 
     def set_active_box(self, box, new=True):
         """
@@ -416,16 +412,16 @@ class WhiteBoard:
                     break
                 # Use specific handling method for current drawing mode
                 self.__handler[self.get_config(["mode"])].handle_all(event)
-                print("l 419 {}".format(self._hist["auth"]))
 
             # msg_a_envoyer["message"] = "CARRY ON"
             # Send dict history to server
+            if self._hist["auth"] != [self._name, self._erasing_auth]:
+                self._hist["auth"] = []
             message_a_envoyer = self.get_hist()
-            print("l 424 {}".format(message_a_envoyer["auth"]))
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
+            self._hist["auth"] = []
             # Dict received from server
             new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
-            print("l 428 {}".format(new_hist["auth"]))
             # Initialize most recent timestamp
             new_last_timestamp = last_timestamp
 
@@ -457,23 +453,18 @@ class WhiteBoard:
                 if not matched:
                     self.add_to_hist(action)
                     if action["type"] == "Text_box":
-                        if action['owner'] in self.__modification_allowed:
+                        if action['owner'] in self.__modification_allowed or action["owner"] == self._name:
                             self.append_text_box(TextBox(**action["params"]))
                     self.draw_action(action)
                 # Update last_timestamp
                 if action["timestamp"] > new_last_timestamp:
                     new_last_timestamp = action["timestamp"]
-            print("l 466 {}".format(new_hist["auth"]))
-            if new_hist["auth"] != self._hist["auth"]:
+            if self._name in new_hist["auth"]:
+                new_hist["auth"].remove(self._name)
+            if new_hist["auth"] != self.__modification_allowed:
                 print("new hist is {}".format(new_hist["auth"]))
-                print("hist is {}".format(self._hist["auth"]))
                 self.__modification_allowed = copy.deepcopy(new_hist["auth"])
-                self._hist["auth"] = new_hist["auth"]
-                print("hist is now {}".format(self._hist["auth"]))
-            if self.name not in self.__modification_allowed:
-                print("l 474 {}".format(self._hist["auth"]))
-                self.__modification_allowed.append(self.name)
-            print("l 476 {}".format(self._hist["auth"]))
+            print("l 476 {}".format(self.__modification_allowed))
             pygame.display.flip()
             # Update last_timestamp
             last_timestamp = new_last_timestamp

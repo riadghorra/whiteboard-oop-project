@@ -80,7 +80,7 @@ class Client(Thread):
             while not self.done:
                 msg_recu = self.nom.recv(2 ** 24)
                 new_hist = binary_to_dict(msg_recu)
-                print(new_hist["auth"])
+                print(self.current_hist["auth"])
                 if new_hist != self.current_hist:
                     for action in new_hist["actions"]:
                         if action["timestamp"] > last_timestamp:
@@ -99,10 +99,12 @@ class Client(Thread):
                     if self.current_hist["message"] == "END":
                         # S'éxécute si le client se déconnecte
                         self.disconnect_client()
-                    if new_hist["auth"] != self.current_hist["auth"]:
+                    if new_hist["auth"] != []:
+                        if new_hist["auth"][1]:
+                            self.current_hist["auth"].append(new_hist["auth"][0])
+                        else:
+                            self.current_hist["auth"].remove(new_hist["auth"][0])
                         print("new hist is {}".format(new_hist["auth"]))
-                        print("current hist is {}".format(self.current_hist["auth"]))
-                        self.current_hist["auth"] = copy.deepcopy(new_hist["auth"])
                         print("current hist is {}".format(self.current_hist["auth"]))
                 time.sleep(0.1)
                 self.nom.send(dict_to_binary(self.current_hist))
@@ -132,7 +134,7 @@ class Server:
         self.__clients = []
         self.__threadlaunched = []
         if historique is None:
-            self.historique = {"message": "", 'actions': []}
+            self.historique = {"message": "", 'actions': [], 'auth': []}
         else:
             self.historique = historique
 
