@@ -5,7 +5,7 @@ import sys
 from functools import reduce
 import operator
 from figures import TextBox, draw_line, draw_point, draw_textbox, draw_rect, draw_circle
-from tools import Mode, ColorBox, Auth, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
+from tools import Mode, ColorBox, Auth, Save, FontSizeBox, HandlePoint, HandleLine, HandleText, HandleRect, HandleCircle
 import copy
 
 '''
@@ -83,14 +83,28 @@ class WhiteBoard:
             pygame.quit()
             sys.exit()
 
+        """
+        Tracé de la boite save
+        """
+
+        try:
+            assert last_left_position < last_right_position + 1, "Too many tools to fit in the Whiteboard " \
+                                                                 "toolbar, please increase width in config.json"
+            self.__save_box = Save((last_left_position, 0), tuple(self._config["auth_box_size"]))
+            last_left_position += self._config["mode_box_size"][0]
+            self.__save_box.add(self.__screen)
+        except AssertionError as e:
+            print(e)
+            pygame.quit()
+            sys.exit()
 
 
 
-        self.__modes = [Mode("point", (self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("line", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("text", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("rect", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
-                        Mode("circle", (5 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
+        self.__modes = [Mode("point", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("line", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("text", (4 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("rect", (5 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
+                        Mode("circle", (6 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"]))
                         ]
         # If right and left boxes overlap, raise an error and close pygame
         try:
@@ -315,6 +329,9 @@ class WhiteBoard:
                 self._erasing_auth = not self._erasing_auth
                 self.__auth_box.switch(self.__screen, self._erasing_auth, self.__modification_allowed, self._name)
                 self._hist["auth"] = [self._name, self._erasing_auth]
+            if self.__save_box.is_triggered(event):
+                self.__save_box.save(self.__screen, self)
+                print("a drawing has been saved in the root folder")
 
     def set_active_box(self, box, new=True):
         """

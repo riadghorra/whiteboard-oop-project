@@ -1,7 +1,7 @@
 {
   "board_background_color": [255, 255, 255],
-  "width": 800,
-  "length": 200,
+  "width": 900,
+  "length": 400,
   "toolbar_y": 45,
   "active_color": [0, 0, 0],
   "font_size": 5,

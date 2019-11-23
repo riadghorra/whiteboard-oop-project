@@ -59,6 +59,31 @@ class Auth(TriggerBox):
         return [name, erasing_auth]
 
 
+class Save(TriggerBox):
+    """
+    Classe d'un bouton qui permet le partage d'image par mail
+    """
+    def __init__(self, top_left, size):
+        TriggerBox.__init__(self, top_left, size)
+        self._size = size
+
+    def add(self, screen):
+        """
+        Dessine la authbox
+        """
+        pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
+        font = pygame.font.Font(None, 18)
+        legend = {"text": font.render("save", True, [0, 0, 0]), "coords": self.coords}
+        screen.blit(legend["text"], legend["coords"])
+
+    def save(self, screen, whiteboard):
+        pygame.image.save(screen.subsurface((0, whiteboard.get_config(["toolbar_y"]) + 1,
+                                                                whiteboard.get_config(["width"]),
+                                                                whiteboard.get_config(["length"]) - whiteboard.get_config(
+                                                                    ["toolbar_y"]) - 1)),"mygreatdrawing.png")
+
+
+
 class Mode(TriggerBox):
     """
     Classe d'un mode de dessin du tableau dans lequel on peut rentrer via la triggerbox dont il herite
