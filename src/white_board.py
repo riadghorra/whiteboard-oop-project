@@ -176,7 +176,6 @@ class WhiteBoard:
             if action["type"] == "Text_box":
                 self.append_text_box(TextBox(**action["params"]))
 
-        print('line 170 {}'.format(self._hist["auth"]))
 
     """
     Encapsulation
@@ -447,7 +446,6 @@ class WhiteBoard:
 
             # Dict received from server
             new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
-            print("le nouveau hist reçu est {}".format(new_hist))
 
             # Consider actions made by another client after new_last_timestamp
             new_actions = [action for action in new_hist["actions"] if action["client"] != self._name]
@@ -481,7 +479,6 @@ class WhiteBoard:
             if self._name in new_hist["auth"]:
                 new_hist["auth"].remove(self._name)
             if new_hist["auth"] != self.__modification_allowed:
-                print("new hist AUTH is {}".format(new_hist["auth"]))
                 self.__modification_allowed = copy.deepcopy(new_hist["auth"])
             pygame.display.flip()
 

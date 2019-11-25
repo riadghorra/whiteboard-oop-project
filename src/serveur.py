@@ -110,7 +110,6 @@ class Client(Thread):
             while not self.is_done():
                 msg_recu = self.client_socket.recv(2 ** 24)
                 new_actions = binary_to_dict(msg_recu)
-                print("les nouvelles actions {}".format(new_actions))
 
                 # Go through each new action and add them to history and there are two cases : if it's an action on
                 # an already existing text box then modify it in history, else append the action to the history
@@ -132,7 +131,6 @@ class Client(Thread):
                 actions_to_send = [x for x in self.server.historique["actions"] if
                                    (x["timestamp"] > self.last_timestamp_sent and x["client"] != self.client_id)]
                 to_send = {"message": "", 'actions': actions_to_send, 'auth': self.server.historique["auth"]}
-                print("to send {}".format(to_send))
                 self.client_socket.send(dict_to_binary(to_send))
 
                 # Update last timestamp if there is a new action
