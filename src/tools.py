@@ -61,7 +61,7 @@ class Auth(TriggerBox):
 
 class Save(TriggerBox):
     """
-    Classe d'un bouton qui permet le partage d'image par mail
+    Classe d'un bouton qui permet la sauvegarde du whiteboard en format PNG
     """
     def __init__(self, top_left, size):
         TriggerBox.__init__(self, top_left, size)
@@ -69,7 +69,7 @@ class Save(TriggerBox):
 
     def add(self, screen):
         """
-        Dessine la authbox
+        Dessine la savebox
         """
         pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
         font = pygame.font.Font(None, 18)

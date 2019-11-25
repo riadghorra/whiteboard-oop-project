@@ -64,7 +64,7 @@ class WhiteBoard:
         # sure that there is no overlapping between left and right boxes on the toolbar on the toolbar
 
         """
-        Tracé de la box auth
+        Tracé de la box auth, qui permet de donner l'autorisation de modification des textbox
         """
 
 
@@ -84,7 +84,7 @@ class WhiteBoard:
             sys.exit()
 
         """
-        Tracé de la boite save
+        Tracé de la boite save qui permet d'enregistrer l'image
         """
 
         try:
@@ -163,7 +163,7 @@ class WhiteBoard:
         """
         Initialisation des paramètres des text boxes
         """
-        self._text_boxes = []
+        self._text_boxes = []  # Cette liste contiendra les objets de type Textbox
 
         self.active_box = None
 
