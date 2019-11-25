@@ -10,8 +10,14 @@ Notre Whiteboard tient compte fonctionne en architecture client/server
  via le protocole TCP/IP. Il faut avant tout rentrer l'adresse IP de
  l'ordinateur qui joue le rôle de serveur dans le fichier config.json de
  chaque ordinateur client. Ensuite il suffit de lancer serveur.py sur 
- l'ordinateur serveur et client.py sur les ordinateurs clients. Une fenêtre
- contenant un Whiteboard d'ouvre alors sur chaque ordinateur client.
+ l'ordinateur serveur et client.py sur les ordinateurs clients. <br>
+```
+{"ip_serveur" : "138.195.245.223"}
+```
+  Une fenêtre  contenant un Whiteboard d'ouvre alors sur chaque ordinateur client. <br>
+ Il existe aussi un fichier main.py pour lancer le whiteboard en local.
+ Il s'agissait de la version de l'application avant l'ajout de la partie réseau.
+ Elle utilise la fonction start_local() de la classe whiteboard.
  
  ## Options de dessin
  Nous avons fait le choix de proposer plusieurs options de dessin dans notre
