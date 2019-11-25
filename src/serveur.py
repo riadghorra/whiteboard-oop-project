@@ -3,7 +3,6 @@ import sys
 import time
 from threading import Thread
 import json
-import copy
 
 '''
 Les deux fonctions fonctions suivantes permettent de convertir les dictionnaires en binaire et réciproquement.
@@ -11,9 +10,9 @@ L'appel de ces dux fonctions permet d'échanger des dictionnaires par socket
 '''
 
 
-def dict_to_binary(dict):
+def dict_to_binary(dico):
     try:
-        str = json.dumps(dict)
+        str = json.dumps(dico)
         return bytes(str, 'utf-8')
     except TypeError:
         print("Le dictionnaire n'est pas du format attendu")

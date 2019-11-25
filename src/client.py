@@ -16,9 +16,8 @@ with open('config.json') as json_file:
 '''
 définition de l'adresse IP du serveur. Ici le serveur est en local.
 '''
-hote = '127.0.0.1'
-'''IP d'Arthur
-'''
+hote = start_config["ip_serveur"]
+
 port = 5001
 
 
