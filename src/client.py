@@ -44,6 +44,7 @@ def main():
     # One we get the first chunk, we loop until we get the whole history
     while total_size_received < message_size:
         msg_recu += connexion_avec_serveur.recv(2 ** int(math.log(message_size, 2) + 1))
+
         total_size_received = sys.getsizeof(msg_recu)
     msg_decode = binary_to_dict(msg_recu)
     hist = msg_decode

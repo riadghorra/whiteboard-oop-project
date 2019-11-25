@@ -22,8 +22,11 @@ def binary_to_dict(binary):
     try:
         jsn = ''.join(binary.decode("utf-8"))
         d = json.loads(jsn)
-    except TypeError:
-        print("Le message reçu n'est pas du format attendu")
+    except (TypeError, json.decoder.JSONDecodeError) as e:
+        if e == TypeError:
+            print("Le message reçu n'est pas du format attendu")
+        else:
+            print('A figure has been lost, it was unexcepted')
     return d
 
 
