@@ -452,7 +452,13 @@ class WhiteBoard:
                 last_timestamp_sent = max([modif["timestamp"] for modif in new_modifs])
 
             # Dict received from server
-            new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
+            try:
+                new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
+            except (ConnectionResetError, ConnectionAbortedError) as e:
+                print("The server has been shut down, please reboot the server")
+                self._done = True
+                pass
+
 
             # Consider actions made by another client after new_last_timestamp
             new_actions = [action for action in new_hist["actions"] if action["client"] != self._name]
@@ -493,7 +499,10 @@ class WhiteBoard:
         pygame.quit()
         print("Fermeture de la connexion")
         message_a_envoyer["message"] = "END"
-        connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
+        try:
+            connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
+        except ConnectionResetError:
+            print("There is no message to send to the server")
         connexion_avec_serveur.close()
 
     def start_local(self):
