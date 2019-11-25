@@ -65,10 +65,17 @@ en modifiant le dictionnaire suivant :
 ```
  
  ## Autorisation de modification
-Rubecos je te laisse remplir
+ En haut à gauche de la barre d'outils se trouve un case avec un rond vert ou rouge.
+ C'est la case d'autorisation de modification. En cliquant dessus, je donne ou retire
+ l'autorisation de modifier les boîtes de textes que j'ai crée. Si le rond est vert,
+ les autres clients peuvent modifier mes boîtes de textes. S'il est rouge, ils ne
+ peuvent plus.
  
  ## Sauvegarde de dessin
- Rubecos aussi
+ La case save de la barre d'outils permet d'enregistrer notre dessin pour le partager
+ avec nos amis. Cliquer sur case crée un png dans le dossier racine du code. A noter
+ que cliquer une nouvelle fois écrasera le dernier dessin. A utiliser sans modération
+ pour montrer vos compétences en dessin à vos amis.
  
  ## Ajouts / originalité par rapport aux consignes initiales
  ### Les boîtes de textes 
