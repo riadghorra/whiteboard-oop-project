@@ -501,7 +501,7 @@ class WhiteBoard:
         message_a_envoyer["message"] = "END"
         try:
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
-        except ConnectionResetError:
+        except (ConnectionResetError, BrokenPipeError) as e:
             print("There is no message to send to the server")
         connexion_avec_serveur.close()
 
