@@ -1,0 +1,8 @@
+sockets
+os-sys
+python-time
+jsonlib
+pygame
+datetime
+functools
+pyoperator
