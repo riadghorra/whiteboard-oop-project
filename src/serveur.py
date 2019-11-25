@@ -27,6 +27,7 @@ def binary_to_dict(binary):
             print("Le message reçu n'est pas du format attendu")
         else:
             print('A figure has been lost, it was unexcepted')
+        return
     return d
 
 
