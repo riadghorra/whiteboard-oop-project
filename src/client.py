@@ -30,7 +30,7 @@ def main():
     try:
         connexion_avec_serveur.connect((hote, port))
     except TimeoutError:
-        print("Le serveur n'a pas répondu, vérifiez les paramètres de connexion")
+        return print("Le serveur n'a pas répondu, vérifiez les paramètres de connexion")
     print("Connexion réussie avec le serveur")
 
     # First get the client id
