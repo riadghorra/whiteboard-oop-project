@@ -6,7 +6,7 @@ Arthur Lindoulsi <br>
 Thibault de Rubercy <br>
 
 ## Lancement du Whiteboard
-Notre Whiteboard tient compte fonctionne en architecture client/server
+Notre Whiteboard fonctionne en architecture client/server
  via le protocole TCP/IP. Il faut avant tout rentrer l'adresse IP de
  l'ordinateur qui joue le rôle de serveur dans le fichier config.json de
  chaque ordinateur client. Ensuite il suffit de lancer serveur.py sur 
@@ -95,4 +95,16 @@ en modifiant le dictionnaire suivant :
  client.py pour reprendre là où il s'est arrêté
  ### Possibilité de sauvegarde d'un dessin en PNG
  Expliqué ci-dessus
+ ### Lancer un whiteboard localement
+ Il est également possible de lancer un whiteboard localement en exécutant 
+ le fichier main.py. Nous utilisions cette fonctionnalité pour tester de 
+ nouvelles features, mais on peut imaginer qu'un utilisateur qui ne
+ veut pas communiquer en réseau puisse utiliser un whiteboard local
+ pour dessiner (comme dans Paint).
+ 
+ ## Dernières remarques
+ Il y a quelques lags lorsque plusieurs clients écrivent des boîtes de texte.
+ Ceci est dû au fait que lorsqu'on écrit ou efface une lettre, il faut render
+ à nouveau l'intégralité du whiteboard (c'est la seule méthode possible 
+ avec pygame). 
  

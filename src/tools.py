@@ -57,13 +57,13 @@ class Auth(TriggerBox):
             pygame.draw.circle(screen, [0, 255, 0],
                                [int(self.coords[0] + self._size[0] / 2), int(self.coords[1] + self._size[1] / 2)],
                                int(min(self._size[0], self._size[1] / 3)))
-            print("{} gave his auth".format(name))
+            print("{} a donné son autorisation de modifications".format(name))
 
         else:
             pygame.draw.circle(screen, [255, 0, 0],
                                [int(self.coords[0] + self._size[0] / 2), int(self.coords[1] + self._size[1] / 2)],
                                int(min(self._size[0], self._size[1] / 3)))
-            print("{} removed his auth".format(name))
+            print("{} a retiré son autorisation de modifications".format(name))
         return [name, erasing_auth]
 
 

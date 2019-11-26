@@ -26,7 +26,7 @@ def binary_to_dict(binary):
         if e == TypeError:
             print("Le message reçu n'est pas du format attendu")
         else:
-            print('A figure has been lost, it was unexcepted')
+            print('Un paquet a été perdu')
         return {"actions": [], "message": [], "auth": []}
     return d
 
@@ -333,7 +333,7 @@ class WhiteBoard:
                 self._hist["auth"] = [self._name, self._erasing_auth]
             if self.__save_box.is_triggered(event):
                 self.__save_box.save(self.__screen, self)
-                print("a drawing has been saved in the root folder")
+                print("Le dessin a été sauvegardé dans le dossier")
 
     def set_active_box(self, box, new=True):
         """
@@ -451,7 +451,7 @@ class WhiteBoard:
             try:
                 new_hist = binary_to_dict(connexion_avec_serveur.recv(2 ** 24))
             except (ConnectionResetError, ConnectionAbortedError) as e:
-                print("The server has been shut down, please reboot the server")
+                print("Le serveur a été éteint, veuillez le relancer")
                 self._done = True
                 pass
 
@@ -497,7 +497,7 @@ class WhiteBoard:
         try:
             connexion_avec_serveur.send(dict_to_binary(message_a_envoyer))
         except (ConnectionResetError, BrokenPipeError) as e:
-            print("There is no message to send to the server")
+            print("Il n'y a pas de message à envoyer au serveur")
         connexion_avec_serveur.close()
 
     def start_local(self):

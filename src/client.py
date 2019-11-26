@@ -29,7 +29,7 @@ def main():
     # Connexion au serveur
     try:
         connexion_avec_serveur.connect((hote, port))
-    except TimeoutError:
+    except (TimeoutError, ConnectionRefusedError, ConnectionResetError, ConnectionAbortedError) as e:
         return print("Le serveur n'a pas répondu, vérifiez les paramètres de connexion")
     print("Connexion réussie avec le serveur")
 
