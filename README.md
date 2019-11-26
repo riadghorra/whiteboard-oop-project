@@ -96,11 +96,3 @@ en modifiant le dictionnaire suivant :
  ### Possibilité de sauvegarde d'un dessin en PNG
  Expliqué ci-dessus
  
- ## Attention dysfonctionnement potentiel lié à la vitesse de l'ordinateur
- Lors de la connexion d'un nouveau client il se peut que l'application
- crash à cause d'un problème dans l'ordre de réception de certains messages
- essentiels à la communication entre le client et le serveur (ceci est expliqué
- aux lignes 207-->210 de serveur.py). Normalement il ne devrait pas y avoir
- de problème car nous avons essayer sur plusieurs ordinateurs, mais si 
- c'est le cas, il suffit d'augmenter le time.sleep(0.1) à la ligne 210
- 

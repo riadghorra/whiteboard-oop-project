@@ -26,7 +26,7 @@ def binary_to_dict(binary):
         if e == TypeError:
             print("Le message reçu n'est pas du format attendu")
         else:
-            print('A figure has been lost, it was unexcepted')
+            print("Un paquet a été perdu")
         return {"actions": [], "message": [], "auth": []}
     return d
 
@@ -139,7 +139,7 @@ class Client(Thread):
                 # Update last timestamp if there is a new action
                 if actions_to_send:
                     self.last_timestamp_sent = max([x["timestamp"] for x in actions_to_send])
-        except ConnectionAbortedError:
+        except (ConnectionAbortedError, ConnectionResetError) as e:
             # Gère la déconnexion soudaine d'un client
             print("Un client s'est déconnecté")
 
@@ -215,7 +215,7 @@ class Server:
         # Wait a little for the previous message to not overlap with the next one
         ## !!WARNING!! DEPENDING ON THE COMPUTER THIS SLEEP TIME MAY BE TOO SMALL, IF THE WHITEBOARD CRASHES, PLEASE
         ## INCREASE IT
-        time.sleep(0.1)
+        time.sleep(0.5)
         client.send(to_send)
         # Get the last timestamp sent to client
         try:
@@ -224,6 +224,7 @@ class Server:
             new_thread.last_timestamp_sent = 0
         new_thread.client_socket = client
         self.add_client(new_thread)
+        print("Un client s'est connecté. Bienvenue {} !".format(client_id))
 
     def run(self):
         """

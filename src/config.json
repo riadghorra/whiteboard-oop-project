@@ -1,7 +1,7 @@
 {
   "board_background_color": [255, 255, 255],
   "width": 900,
-  "length": 400,
+  "length": 700,
   "toolbar_y": 45,
   "active_color": [0, 0, 0],
   "font_size": 5,
@@ -26,5 +26,5 @@
     "textbox_width": 140,
     "text_color": [0, 0, 0]
   },
-  "ip_serveur" : "138.195.245.223"
+  "ip_serveur" : "138.195.245.119"
 }

@@ -74,7 +74,6 @@ class WhiteBoard:
         Tracé de la box auth, qui permet de donner l'autorisation de modification des textbox
         """
 
-
         last_left_position = 0
         last_right_position = self._config["width"] - self._config["mode_box_size"][0]
         self._erasing_auth = False
@@ -104,8 +103,6 @@ class WhiteBoard:
             print(e)
             pygame.quit()
             sys.exit()
-
-
 
         self.__modes = [Mode("point", (2 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
                         Mode("line", (3 * self._config["mode_box_size"][0], 0), tuple(self._config["mode_box_size"])),
@@ -182,7 +179,6 @@ class WhiteBoard:
         for action in self._hist["actions"]:
             if action["type"] == "Text_box":
                 self.append_text_box(TextBox(**action["params"]))
-
 
     """
     Encapsulation
@@ -458,7 +454,6 @@ class WhiteBoard:
                 print("The server has been shut down, please reboot the server")
                 self._done = True
                 pass
-
 
             # Consider actions made by another client after new_last_timestamp
             new_actions = [action for action in new_hist["actions"] if action["client"] != self._name]

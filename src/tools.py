@@ -30,10 +30,12 @@ class TriggerBox:
         """
         return self.rect.collidepoint(event.pos)
 
+
 class Auth(TriggerBox):
     """
     Classe d'un bouton qui change l'autorisation de modification
     """
+
     def __init__(self, top_left, size):
         TriggerBox.__init__(self, top_left, size)
         self._size = size
@@ -43,18 +45,24 @@ class Auth(TriggerBox):
         Dessine la authbox
         """
         pygame.draw.rect(screen, [0, 0, 0], self.rect, 1)
-        pygame.draw.circle(screen, [255, 0, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+        pygame.draw.circle(screen, [255, 0, 0],
+                           [int(self.coords[0] + self._size[0] / 2), int(self.coords[1] + self._size[1] / 2)],
+                           int(min(self._size[0], self._size[1] / 3)))
         font = pygame.font.Font(None, 18)
         legend = {"text": font.render("auth", True, [0, 0, 0]), "coords": self.coords}
         screen.blit(legend["text"], legend["coords"])
 
     def switch(self, screen, erasing_auth, modification_allowed, name):
         if erasing_auth:
-            pygame.draw.circle(screen, [0, 255, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+            pygame.draw.circle(screen, [0, 255, 0],
+                               [int(self.coords[0] + self._size[0] / 2), int(self.coords[1] + self._size[1] / 2)],
+                               int(min(self._size[0], self._size[1] / 3)))
             print("{} gave his auth".format(name))
 
         else:
-            pygame.draw.circle(screen, [255, 0, 0], [int(self.coords[0]+self._size[0]/2), int(self.coords[1]+self._size[1]/2)], int(min(self._size[0], self._size[1]/3)))
+            pygame.draw.circle(screen, [255, 0, 0],
+                               [int(self.coords[0] + self._size[0] / 2), int(self.coords[1] + self._size[1] / 2)],
+                               int(min(self._size[0], self._size[1] / 3)))
             print("{} removed his auth".format(name))
         return [name, erasing_auth]
 
@@ -63,6 +71,7 @@ class Save(TriggerBox):
     """
     Classe d'un bouton qui permet la sauvegarde du whiteboard en format PNG
     """
+
     def __init__(self, top_left, size):
         TriggerBox.__init__(self, top_left, size)
         self._size = size
@@ -78,10 +87,9 @@ class Save(TriggerBox):
 
     def save(self, screen, whiteboard):
         pygame.image.save(screen.subsurface((0, whiteboard.get_config(["toolbar_y"]) + 1,
-                                                                whiteboard.get_config(["width"]),
-                                                                whiteboard.get_config(["length"]) - whiteboard.get_config(
-                                                                    ["toolbar_y"]) - 1)),"mygreatdrawing.png")
-
+                                             whiteboard.get_config(["width"]),
+                                             whiteboard.get_config(["length"]) - whiteboard.get_config(
+                                                 ["toolbar_y"]) - 1)), "mygreatdrawing.png")
 
 
 class Mode(TriggerBox):
@@ -288,7 +296,6 @@ class HandleText(EventHandler):
             for box in self.whiteboard.get_text_boxes():
                 if box.rect.collidepoint(event.pos):
                     self.whiteboard.set_active_box(box, new=False)
-
 
     def write_in_box(self, event):
         """
