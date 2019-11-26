@@ -16,8 +16,15 @@ def distance(v1, v2):
     except TypeError:
         return "Ce ne sont pas des vecteurs"
 
+class Figure:
+    def __init__(self):
+        pass
+    def draw(self):
+        pass
+    def fetch_params(self):
+        pass
 
-class Point:
+class Point(Figure):
     """
     Classe d'un point prêt à être tracé sur le tableau
     coord (list) : coordonées
@@ -27,6 +34,7 @@ class Point:
     """
 
     def __init__(self, coord, point_color, font_size, toolbar_size=0):
+        Figure.__init__(self)
         self.point_color = point_color
         self.font_size = font_size
 
@@ -49,7 +57,7 @@ class Point:
         return {"coord": self.coord, "point_color": self.point_color, "font_size": self.font_size}
 
 
-class Line:
+class Line(Figure):
     """
     Classe d'une ligne droite
     line_color (list) : couleur de la ligne en RGB
@@ -59,6 +67,7 @@ class Line:
     """
 
     def __init__(self, line_color, start_pos, end_pos, font_size):
+        Figure.__init__(self)
         self.line_color = line_color
         self.start_pos = start_pos
         self.end_pos = end_pos
@@ -80,7 +89,7 @@ class Line:
                 "font_size": self.font_size}
 
 
-class Rectangle:
+class Rectangle(Figure):
     """
     Classe d un rectangle
     color (list) : couleur du rectangle
@@ -93,6 +102,7 @@ class Rectangle:
         On definit les parametres du rectangle a partir des coordonees de deux coins
         c1, c2 (lists): coordonees de deux coins du rectangle
         """
+        Figure.__init__(self)
         self.c1 = c1
         self.c2 = c2
         self.color = color
@@ -119,7 +129,7 @@ class Rectangle:
         return {"c1": self.c1, "c2": self.c2, "color": self.color}
 
 
-class Circle:
+class Circle(Figure):
     """
     Classe d un cercle
     center (list) : les coordonees du centre
@@ -130,6 +140,7 @@ class Circle:
     """
 
     def __init__(self, center, extremity, color, toolbar_size=0):
+        Figure.__init__(self)
         self.center = center
         # on ne veut pas depasser sur la toolbar donc on reduit le rayon
         self.radius = min(int(distance(center, extremity)), center[1] - toolbar_size - 1)
@@ -150,7 +161,7 @@ class Circle:
         return {"center": self.center, "extremity": self.extremity, "color": self.color}
 
 
-class TextBox:
+class TextBox(Figure):
     """
     Classe d une textbox
     x, y (int) : l'abscisse a gauche et l'ordonee a droite de la textbox ie (x,y) est le topleft
@@ -164,6 +175,7 @@ class TextBox:
     """
 
     def __init__(self, x, y, w, h, box_color, font, font_size, text, text_color):
+        Figure.__init__(self)
         self.__rect = pygame.Rect(x, y, w, h)
         self._color = box_color
         self._text = text
