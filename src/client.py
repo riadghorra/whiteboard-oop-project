@@ -27,7 +27,10 @@ def main():
     """
     connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Connexion au serveur
-    connexion_avec_serveur.connect((hote, port))
+    try:
+        connexion_avec_serveur.connect((hote, port))
+    except TimeoutError:
+        print("Le serveur n'a pas répondu, vérifiez les paramètres de connexion")
     print("Connexion réussie avec le serveur")
 
     # First get the client id
